@@ -1,92 +1,320 @@
 const fs = require("fs");
-var mysql = require("mysql");
-var con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "Root",
-  database: "groupomania",
-});
+const con = require("../db");
 
 exports.createMyInfo = (req, res, next) => {
-  const uuid = `SELECT UUID()`;
-  const json = req.body.data;
-  const value = JSON.parse(json);
-
-  con.query(uuid, function (err, result, fields) {
-    if (err) {
-      throw err;
-    }
-    let obj = result.shift();
-    let valeur = Object.values(obj);
-
-    const imageUrl = `${req.protocol}://${req.get("host")}/images/${
-      req.file.filename
-    }`;
-
-    const profil = `INSERT INTO profil (idprofil,nom,prenom,age,photo,poste) VALUES ("${
-      valeur[0]
-    }",${con.escape(value.nom)},${con.escape(value.prenom)},${con.escape(
-      value.age
-    )},"${imageUrl}",${con.escape(value.poste)})`;
+  if (!req.file) {
+    const profil = `INSERT INTO profil (nom,prenom,age,poste,user) VALUES (${con.escape(
+      req.body.nom
+    )},${con.escape(req.body.prenom)},${con.escape(req.body.age)},${con.escape(
+      req.body.poste
+    )},${con.escape(req.body.user)})`;
 
     con.query(profil, function (err, result, fields) {
       if (err) {
         throw err;
       }
-      return res.status(200).json({ message: " profil crée" });
+      return res.status(200).json({ message: "Profil crée" });
     });
-  });
-};
-exports.modifyMyInfo = (req, res, next) => {
-  const dltImg = `Select photo from profil where idprofil="${req.params.id}"`;
-  con.query(dltImg, function (err, result, fields) {
-    if (err) {
-      throw err;
-    }
-    let obj = result.shift();
-    let valeur = Object.values(obj);
-    console.log(valeur);
-
-    const filename = valeur[0].split("/images/")[1];
-    fs.unlink(`images/${filename}`, () => {});
-
+    //Création de post avec image
+  } else {
+    const json = req.body.data;
+    const value = JSON.parse(json);
     const imageUrl = `${req.protocol}://${req.get("host")}/images/${
       req.file.filename
     }`;
-    const json = req.body.data;
-    const value = JSON.parse(json);
-    const updtProfil = `UPDATE profil
-SET nom = "${value.nom}",prenom ="${value.prenom}",age ="${value.age}",photo ="${imageUrl}",poste ="${value.poste}"
-WHERE idprofil = "${req.params.id}"`;
 
-    con.query(updtProfil, function (err, result, fields) {
+    const profil = `INSERT INTO profil (nom,prenom,age,photo,poste,user) VALUES (${con.escape(
+      value.nom
+    )},${con.escape(value.prenom)},${con.escape(
+      value.age
+    )},"${imageUrl}",${con.escape(value.poste)},${con.escape(req.body.user)})`;
+
+    con.query(profil, function (err, result, fields) {
       if (err) {
         throw err;
       }
-      return res.status(200).json({ message: "post modifié" });
+      return res.status(200).json({ message: "Post avec image crée" });
     });
-  });
+  }
+};
+exports.modifyMyInfo = (req, res, next) => {
+  //Avec file
+  if (req.file) {
+    const lvl = JSON.parse(req.body.data);
+    const admin = `select lvl from users where id = "${lvl.user}"`;
+    //Premiere étape on verifie le niveau d'acreditation de l'envoyeur
+    con.query(admin, function (err, result, fields) {
+      if (err) {
+        throw err;
+      }
+      let obj = result.shift();
+      let valeur = Object.values(obj);
+
+      //Si celui ci à la valeur de l'administrateur alors il execute directement
+      if (valeur[0] == 1) {
+        const dltImg = `Select photo from profil where idProfil = "${req.params.id}"`;
+        con.query(dltImg, function (err, result, fields) {
+          if (err) {
+            throw err;
+          }
+          let obj = result.shift();
+          let valeur = Object.values(obj);
+
+          const filename = valeur[0].split("/images/")[1];
+          fs.unlink(`images/${filename}`, () => {});
+
+          const imageUrl = `${req.protocol}://${req.get("host")}/images/${
+            req.file.filename //creation de l'url de l'image
+          }`;
+          const json = req.body.data;
+          const value = JSON.parse(json);
+          const updt = `UPDATE profil
+SET nom = "${value.nom}",prenom = "${value.prenom}",age = "${value.age}",photo = "${imageUrl}",poste = "${value.poste}"
+WHERE idProfil = "${req.params.id}"`;
+
+          con.query(updt, function (err, result, fields) {
+            if (err) {
+              throw err;
+            }
+            return res.status(200).json({ message: "post modifié" });
+          });
+        });
+      }
+      //Sinon on verifie si l'utilisateur concerné est bien le proprietaire du post
+      else {
+        if (valeur[0] == 0) {
+          const auth = `select user from profil where idProfil ="${req.params.id}"`;
+          con.query(auth, function (err, result, fields) {
+            if (err) {
+              throw err;
+            }
+            let obj = result.shift();
+            let valeur = Object.values(obj);
+            const json = req.body.data;
+            const value = JSON.parse(json);
+            if (valeur[0] !== value.user) {
+              return res.status(400).json({ error: "utilisateur non valide" });
+            }
+
+            const dltImg = `Select photo from profil where idProfil="${req.params.user}"`;
+            con.query(dltImg, function (err, result, fields) {
+              if (err) {
+                throw err;
+              }
+              if (result.length !== 0) {
+                let obj = result.shift();
+                let valeur = Object.values(obj);
+
+                const filename = valeur[0].split("/images/")[1];
+                fs.unlink(`images/${filename}`, () => {});
+
+                const imageUrl = `${req.protocol}://${req.get("host")}/images/${
+                  req.file.filename //creation de l'url de l'image
+                }`;
+                const json = req.body.data;
+                const value = JSON.parse(json);
+                const updt = `UPDATE profil
+SET nom = "${value.nom}",prenom = "${value.prenom}",age = "${value.age}",photo = "${imageUrl}",poste = "${value.poste}"
+WHERE idProfil = "${req.params.id}"`;
+
+                con.query(updt, function (err, result, fields) {
+                  if (err) {
+                    throw err;
+                  }
+                  return res.status(200).json({ message: "profil modifié" });
+                });
+              } else {
+                const imageUrl = `${req.protocol}://${req.get("host")}/images/${
+                  req.file.filename //creation de l'url de l'image
+                }`;
+                const json = req.body.data;
+                const value = JSON.parse(json);
+                const updt = `UPDATE profil
+SET nom = "${value.nom}",prenom = "${value.prenom}",age = "${value.age}",photo = "${imageUrl}",poste = "${value.poste}"
+WHERE idProfil = "${req.params.id}"`;
+
+                con.query(updt, function (err, result, fields) {
+                  if (err) {
+                    throw err;
+                  }
+                  return res.status(200).json({ message: "profil modifié" });
+                });
+              }
+            });
+          });
+        }
+      }
+    });
+  } else {
+    //Sans file
+    if (!req.file) {
+      const admin = `select lvl from users where id = "${req.body.user}"`;
+      //Premiere étape on verifie le niveau d'acreditation de l'envoyeur
+      con.query(admin, function (err, result, fields) {
+        if (err) {
+          throw err;
+        }
+        let obj = result.shift();
+        let valeur = Object.values(obj);
+        //Si celui ci à la valeur de l'administrateur alors il execute directement
+        if (valeur[0] == 1) {
+          const updt = `UPDATE profil
+SET nom = "${value.nom}",prenom = "${value.prenom}",age = "${value.age}",poste = "${value.poste}"
+WHERE idProfil = "${req.params.id}"`;
+          con.query(updt, function (err, result, fields) {
+            if (err) {
+              throw err;
+            }
+            return res.status(200).json({ message: "profil modifié" });
+          });
+        }
+        //Sinon on verifie si l'utilisateur concerné est bien le proprietaire du profil
+        else {
+          if (valeur[0] == 0) {
+            const auth = `select user from Profil where idProfil ="${req.params.id}"`;
+            con.query(auth, function (err, result, fields) {
+              if (err) {
+                throw err;
+              }
+
+              let obj = result.shift();
+              let valeur = Object.values(obj);
+              if (valeur[0] !== req.body.user) {
+                return res
+                  .status(400)
+                  .json({ error: "utilisateur non valide" });
+              } else {
+                if (valeur[0] == req.body.user) {
+                  const updt = `UPDATE profil
+SET nom = "${req.body.nom}",prenom = "${req.body.prenom}",age = "${req.body.age}",poste = "${req.body.poste}"
+WHERE idProfil = "${req.params.id}"`;
+                  con.query(updt, function (err, result, fields) {
+                    if (err) {
+                      throw err;
+                    }
+                    return res.status(200).json({ message: "profil modifié" });
+                  });
+                }
+              }
+            });
+          }
+        }
+      });
+    }
+  }
 };
 exports.deleteMyInfo = (req, res, next) => {
-  const dltImg = `Select photo from profil where idprofil="${req.params.id}"`;
-  con.query(dltImg, function (err, result, fields) {
+  //Premiere étape on verifie le niveau d'acreditation de l'envoyeur
+  const admin = `select lvl from users where id = "${req.body.user}"`;
+  con.query(admin, function (err, result, fields) {
     if (err) {
       throw err;
     }
     let obj = result.shift();
     let valeur = Object.values(obj);
-    console.log(valeur);
+    //Si celui ci à la valeur de l'administrateur alors il execute directement la requete
+    if (valeur[0] == 1) {
+      //on verifie d'abord que le post avait une image .
+      const verifImg = `Select photo from profil where idProfil = "${req.params.id}"`;
+      con.query(verifImg, function (err, result, fields) {
+        if (err) {
+          throw err;
+        }
+        let obj = result.shift();
+        let valeur = Object.values(obj);
+        //si il n'y a aucune image alors on supprime directment
+        if (valeur[0].length == 0) {
+          const dlt = `DELETE FROM profil WHERE idProfil = "${req.params.id}"`;
+          con.query(dlt, function (err, result, fields) {
+            if (err) {
+              throw err;
+            }
+            return res.status(200).json({ message: "profil supprimé" });
+          });
+          // Sinon on supprime dabord l'image du serveur et ensuite on supprime le post de la database
+        } else {
+          const dltImg = `Select image from post where idPost="${req.params.id}"`;
+          con.query(dltImg, function (err, result, fields) {
+            if (err) {
+              throw err;
+            }
+            let obj = result.shift();
+            let valeur = Object.values(obj);
 
-    const filename = valeur[0].split("/images/")[1];
-    fs.unlink(`images/${filename}`, () => {});
+            const filename = valeur[0].split("/images/")[1];
+            fs.unlink(`images/${filename}`, () => {});
 
-    const dlt = `DELETE FROM profil WHERE idprofil = "${req.params.id}"`;
-    con.query(dlt, function (err, result, fields) {
-      if (err) {
-        throw err;
-      }
-      return res.status(200).json({ message: "profil supprimé" });
-    });
+            const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
+            con.query(dlt, function (err, result, fields) {
+              if (err) {
+                throw err;
+              }
+              return res.status(200).json({ message: "post supprimé" });
+            });
+          });
+        }
+      });
+    } else {
+      //Si celui ci n'a pas le niveau administrateur alors on verifie que ce soit la personne ayant créer le post qui veuille la supprimer
+      const auth = `select user from profil where idProfil="${req.params.id}"`;
+      con.query(auth, function (err, result, fields) {
+        if (err) {
+          throw err;
+        }
+        let obj = result.shift();
+        let valeur = Object.values(obj);
+        const json = req.body.user;
+        //si ce n'est pas le bon utilisateur on retourne une erreur
+        if (valeur[0] !== json) {
+          return res.status(400).json({ error: "requete impossible" });
+        }
+        //Sinon si c'est le bon utilisateur
+        else {
+          if (valeur[0] == json) {
+            //on verifie d'abord que le post avait une image .
+            const verifImg = `Select photo from profil where idProfil = "${req.params.id}"`;
+            con.query(verifImg, function (err, result, fields) {
+              if (err) {
+                throw err;
+              }
+              let obj = result.shift();
+              let valeur = Object.values(obj);
+              //si il n'y a aucune image alors on supprime directment
+              if (valeur[0].length == 0) {
+                const dlt = `DELETE FROM profil WHERE idProfil = "${req.params.id}"`;
+                con.query(dlt, function (err, result, fields) {
+                  if (err) {
+                    throw err;
+                  }
+                  return res.status(200).json({ message: "profil supprimé" });
+                });
+                // Sinon on supprime dabord l'image du serveur et ensuite on supprime le post de la database
+              } else {
+                const dltImg = `Select photo from profil where idProfil="${req.params.id}"`;
+                con.query(dltImg, function (err, result, fields) {
+                  if (err) {
+                    throw err;
+                  }
+                  let obj = result.shift();
+                  let valeur = Object.values(obj);
+
+                  const filename = valeur[0].split("/images/")[1];
+                  fs.unlink(`images/${filename}`, () => {});
+
+                  const dlt = `DELETE FROM profil WHERE idProfil = "${req.params.id}"`;
+                  con.query(dlt, function (err, result, fields) {
+                    if (err) {
+                      throw err;
+                    }
+                    return res.status(200).json({ message: "profil supprimé" });
+                  });
+                });
+              }
+            });
+          }
+        }
+      });
+    }
   });
 };
 exports.getMyInfo = (req, res, next) => {
