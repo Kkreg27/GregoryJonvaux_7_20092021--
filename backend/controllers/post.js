@@ -49,7 +49,7 @@ exports.modifyPost = (req, res, next) => {
   //Avec file
   if (req.file) {
     const lvl = JSON.parse(req.body.data);
-    const admin = `select lvl from users where id = "${lvl.id}"`;
+    const admin = `select lvl from users where id = "${lvl.id_user}"`;
     //Premiere étape on verifie le niveau d'acreditation de l'envoyeur
     con.query(admin, function (err, result, fields) {
       if (err) {
@@ -57,79 +57,35 @@ exports.modifyPost = (req, res, next) => {
       }
       let obj = result.shift();
       let valeur = Object.values(obj);
-
       //Si celui ci à la valeur de l'administrateur alors il execute directement
       if (valeur[0] == 1) {
-        //La requete contient elle un fichier
-        if (!req.file) {
-          //La requete ne contient pas de fichier a modifier
-          const updt = `UPDATE post
-SET description = "${value.description}"
-WHERE idPost = "${req.params.id}"`;
-          con.query(updt, function (err, result, fields) {
-            if (err) {
-              throw err;
-            }
-            return res.status(200).json({ message: "post modifié" });
-          });
-        } else {
-          //La requete contient un fichier a modifier
-          const dltImg = `Select image from post where idPost="${req.params.id}"`;
-          con.query(dltImg, function (err, result, fields) {
-            if (err) {
-              throw err;
-            }
-            let obj = result.shift();
-            let valeur = Object.values(obj);
-
-            const filename = valeur[0].split("/images/")[1];
-            fs.unlink(`images/${filename}`, () => {});
-
+        //on verifie si le post contenait deja une image
+        const existImg = `select image from post where idPost="${req.params.id}"`;
+        con.query(existImg, function (err, result, fields) {
+          if (err) {
+            throw err;
+          }
+          let obj = result.shift();
+          let valeur = Object.values(obj);
+          if (valeur[0] == null) {
             const imageUrl = `${req.protocol}://${req.get("host")}/images/${
               req.file.filename //creation de l'url de l'image
             }`;
             const json = req.body.data;
             const value = JSON.parse(json);
             const updt = `UPDATE post
-SET description = "${value.description}",image ="${imageUrl}"
+SET description = "${value.description}",image="${imageUrl}"
 WHERE idPost = "${req.params.id}"`;
-
             con.query(updt, function (err, result, fields) {
               if (err) {
                 throw err;
               }
-              return res.status(200).json({ message: "post modifié" });
+              return res
+                .status(200)
+                .json({ message: "post sans img maj avec img" });
             });
-          });
-        }
-      }
-      //Sinon on verifie si l'utilisateur concerné est bien le proprietaire du post
-      else {
-        if (valeur[0] == 0) {
-          const auth = `select id_user from post where idPost="${req.params.id}"`;
-          con.query(auth, function (err, result, fields) {
-            if (err) {
-              throw err;
-            }
-            let obj = result.shift();
-            let valeur = Object.values(obj);
-            const json = req.body.data;
-            const value = JSON.parse(json);
-            if (valeur[0] !== value.id) {
-              return res.status(400).json({ error: "utilisateur non valide" });
-            }
-            if (!req.file) {
-              const updt = `UPDATE post
-SET description = "${value.description}"
-WHERE idPost = "${req.params.id}"`;
-
-              con.query(updt, function (err, result, fields) {
-                if (err) {
-                  throw err;
-                }
-                return res.status(200).json({ message: "post modifié" });
-              });
-            } else {
+          } else {
+            if (valeur[0] == !null) {
               const dltImg = `Select image from post where idPost="${req.params.id}"`;
               con.query(dltImg, function (err, result, fields) {
                 if (err) {
@@ -158,14 +114,90 @@ WHERE idPost = "${req.params.id}"`;
                 });
               });
             }
+          }
+        });
+      }
+      //Sinon on verifie si l'utilisateur concerné est bien le proprietaire du post
+      else {
+        if (valeur[0] == 0) {
+          const auth = `select id_user from post where idPost="${req.params.id}"`;
+          con.query(auth, function (err, result, fields) {
+            if (err) {
+              throw err;
+            }
+            let obj = result.shift();
+            let valeur = Object.values(obj);
+            const json = req.body.data;
+            const value = JSON.parse(json);
+            if (valeur[0] !== value.id_user) {
+              return res.status(400).json({ error: "utilisateur non valide" });
+            } else {
+              //on verifie si le post contenait deja une image
+              con.query(existImg, function (err, result, fields) {
+                if (err) {
+                  throw err;
+                }
+                let obj = result.shift();
+                let valeur = Object.values(obj);
+                if (valeur[0] == null) {
+                  const json = req.body.data;
+                  const value = JSON.parse(json);
+                  const updt = `UPDATE post
+SET description = "${value.description}"
+WHERE idPost = "${req.params.id}"`;
+                  con.query(updt, function (err, result, fields) {
+                    if (err) {
+                      throw err;
+                    }
+                    return res
+                      .status(200)
+                      .json({ message: "post sans img maj avec img" });
+                  });
+                } else {
+                  if (valeur[0] == !null) {
+                    const dltImg = `Select image from post where idPost="${req.params.id}"`;
+                    con.query(dltImg, function (err, result, fields) {
+                      if (err) {
+                        throw err;
+                      }
+                      let obj = result.shift();
+                      let valeur = Object.values(obj);
+
+                      const filename = valeur[0].split("/images/")[1];
+                      fs.unlink(`images/${filename}`, () => {});
+
+                      const imageUrl = `${req.protocol}://${req.get(
+                        "host"
+                      )}/images/${
+                        req.file.filename //creation de l'url de l'image
+                      }`;
+                      const json = req.body.data;
+                      const value = JSON.parse(json);
+                      const updt = `UPDATE post
+SET description = "${value.description}",image ="${imageUrl}"
+WHERE idPost = "${req.params.id}"`;
+
+                      con.query(updt, function (err, result, fields) {
+                        if (err) {
+                          throw err;
+                        }
+                        return res
+                          .status(200)
+                          .json({ message: "post modifié" });
+                      });
+                    });
+                  }
+                }
+              });
+            }
           });
         }
       }
     });
-  } else {
-    //Sans file
+  } //Sans file
+  else {
     if (!req.file) {
-      const admin = `select lvl from users where id = "${req.body.id}"`;
+      const admin = `select lvl from users where id = "${req.body.id_user}"`;
       //Premiere étape on verifie le niveau d'acreditation de l'envoyeur
       con.query(admin, function (err, result, fields) {
         if (err) {
@@ -184,7 +216,9 @@ WHERE idPost = "${req.params.id}"`;
             if (err) {
               throw err;
             }
-            return res.status(200).json({ message: "post modifié" });
+            return res.status(200).json({
+              message: "post modifié par administrateur sans nouvelle image",
+            });
           });
         }
         //Sinon on verifie si l'utilisateur concerné est bien le proprietaire du post
@@ -198,12 +232,12 @@ WHERE idPost = "${req.params.id}"`;
 
               let obj = result.shift();
               let valeur = Object.values(obj);
-              if (valeur[0] !== req.body.id) {
+              if (valeur[0] !== req.body.id_user) {
                 return res
                   .status(400)
                   .json({ error: "utilisateur non valide" });
               } else {
-                if (valeur[0] == req.body.id) {
+                if (valeur[0] == req.body.id_user) {
                   const updt = `UPDATE post
 SET description = "${req.body.description}"
 WHERE idPost = "${req.params.id}"`;
@@ -211,7 +245,10 @@ WHERE idPost = "${req.params.id}"`;
                     if (err) {
                       throw err;
                     }
-                    return res.status(200).json({ message: "post modifié" });
+                    return res.status(200).json({
+                      message:
+                        "post modifié par le bon user sans modification d'image",
+                    });
                   });
                 }
               }
@@ -222,10 +259,9 @@ WHERE idPost = "${req.params.id}"`;
     }
   }
 };
-
 exports.deletePost = (req, res, next) => {
   //Premiere étape on verifie le niveau d'acreditation de l'envoyeur
-  const admin = `select lvl from users where id = "${req.body.id}"`;
+  const admin = `select lvl from users where id = "${req.body.id_user}"`;
   con.query(admin, function (err, result, fields) {
     if (err) {
       throw err;
@@ -243,7 +279,7 @@ exports.deletePost = (req, res, next) => {
         let obj = result.shift();
         let valeur = Object.values(obj);
         //si il n'y a aucune image alors on supprime directment
-        if (valeur[0].length == 0) {
+        if (valeur[0] == null) {
           const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
           con.query(dlt, function (err, result, fields) {
             if (err) {
@@ -283,7 +319,7 @@ exports.deletePost = (req, res, next) => {
         }
         let obj = result.shift();
         let valeur = Object.values(obj);
-        const json = req.body.id;
+        const json = req.body.id_user;
         //si ce n'est pas le bon utilisateur on retourne une erreur
         if (valeur[0] !== json) {
           return res.status(400).json({ error: "requete impossible" });
@@ -300,7 +336,7 @@ exports.deletePost = (req, res, next) => {
               let obj = result.shift();
               let valeur = Object.values(obj);
               //si il n'y a aucune image alors on supprime directment
-              if (valeur[0].length == 0) {
+              if (valeur[0] == null) {
                 const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
                 con.query(dlt, function (err, result, fields) {
                   if (err) {

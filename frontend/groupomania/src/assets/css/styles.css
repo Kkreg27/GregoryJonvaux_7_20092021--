@@ -1,0 +1,241 @@
+body {
+  background: linear-gradient(45deg, #ffffff, #e6e6e6);
+}
+
+body #logo {
+  width: 50%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin: 0 auto;
+  height: 150px;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+body #connexion {
+  position: absolute;
+  padding: 20px;
+  margin: auto;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 35%;
+  height: 50%;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-;
+  border-radius: 54px;
+  background: linear-gradient(225deg, #ffffff, #e6e6e6);
+  -webkit-box-shadow: -5px 5px 10px #919191, 5px -5px 10px #ffffff;
+          box-shadow: -5px 5px 10px #919191, 5px -5px 10px #ffffff;
+}
+
+body #connexion h1 {
+  text-align: center;
+  font-size: 50px;
+}
+
+body #connexion p:nth-child(2) {
+  text-align: center;
+}
+
+body #connexion #test {
+  color: black;
+  text-decoration: none;
+}
+
+body #connexion #test:hover {
+  border: 1px solid #02aab0;
+  padding: 2px;
+  color: #02aab0;
+}
+
+body #connexion form {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  text-align: left;
+  height: 50%;
+}
+
+body #connexion form #Email {
+  margin: 20px;
+  font-size: 20px;
+}
+
+body #connexion form #fieldEmail {
+  padding: 10px;
+  font-size: 20px;
+  border-radius: 50px;
+}
+
+body #connexion form #fieldEmail:hover {
+  border-color: #00cdac;
+}
+
+body #connexion form #Password {
+  margin: 20px;
+  font-size: 20px;
+}
+
+body #connexion form #fieldPassword {
+  padding: 10px;
+  font-size: 20px;
+  border-radius: 50px;
+}
+
+body #connexion form #fieldPassword:hover {
+  border-color: #00cdac;
+}
+
+body #connexion form #button {
+  background-image: -webkit-gradient(linear, left top, right top, from(#02aab0), color-stop(51%, #00cdac), to(#02aab0));
+  background-image: linear-gradient(to right, #02aab0 0%, #00cdac 51%, #02aab0 100%);
+  margin: 10px;
+  padding: 15px 45px;
+  text-align: center;
+  text-transform: uppercase;
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: white;
+  -webkit-box-shadow: 0 0 20px #eee;
+          box-shadow: 0 0 20px #eee;
+  border-radius: 10px;
+  display: block;
+  padding: 10px;
+  border: none;
+  font-size: 20px;
+  width: 50%;
+  margin: 0 auto;
+  border-radius: 50px;
+}
+
+body #connexion form #button:hover {
+  background-position: right center;
+  /* change the direction of the change here */
+  color: #fff;
+  text-decoration: none;
+}
+
+body #inscription {
+  position: absolute;
+  padding: 20px;
+  margin: auto;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 35%;
+  height: 50%;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-;
+  border-radius: 54px;
+  background: linear-gradient(225deg, #ffffff, #e6e6e6);
+  -webkit-box-shadow: -5px 5px 10px #919191, 5px -5px 10px #ffffff;
+          box-shadow: -5px 5px 10px #919191, 5px -5px 10px #ffffff;
+}
+
+body #inscription h1 {
+  text-align: center;
+  font-size: 50px;
+}
+
+body #inscription p:nth-child(2) {
+  text-align: center;
+}
+
+body #inscription #test {
+  color: black;
+  text-decoration: none;
+}
+
+body #inscription #test:hover {
+  border: 1px solid #02aab0;
+  padding: 2px;
+  color: #02aab0;
+}
+
+body #inscription form {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  text-align: left;
+  height: 50%;
+}
+
+body #inscription form #Email {
+  margin: 20px;
+  font-size: 20px;
+}
+
+body #inscription form #fieldEmail {
+  padding: 10px;
+  font-size: 20px;
+  border-radius: 50px;
+}
+
+body #inscription form #fieldEmail:hover {
+  border-color: #00cdac;
+}
+
+body #inscription form #Password {
+  margin: 20px;
+  font-size: 20px;
+}
+
+body #inscription form #fieldPassword {
+  padding: 10px;
+  font-size: 20px;
+  border-radius: 50px;
+}
+
+body #inscription form #fieldPassword:hover {
+  border-color: #00cdac;
+}
+
+body #inscription form #button {
+  background-image: -webkit-gradient(linear, left top, right top, from(#02aab0), color-stop(51%, #00cdac), to(#02aab0));
+  background-image: linear-gradient(to right, #02aab0 0%, #00cdac 51%, #02aab0 100%);
+  margin: 10px;
+  padding: 15px 45px;
+  text-align: center;
+  text-transform: uppercase;
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: white;
+  -webkit-box-shadow: 0 0 20px #eee;
+          box-shadow: 0 0 20px #eee;
+  border-radius: 10px;
+  display: block;
+  padding: 10px;
+  border: none;
+  font-size: 20px;
+  width: 50%;
+  margin: 0 auto;
+  border-radius: 50px;
+}
+
+body #inscription form #button:hover {
+  background-position: right center;
+  /* change the direction of the change here */
+  color: #fff;
+  text-decoration: none;
+}
+/*# sourceMappingURL=styles.css.map */

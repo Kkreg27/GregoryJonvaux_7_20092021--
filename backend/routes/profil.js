@@ -10,7 +10,7 @@ const apiLimiter = rateLimit({
   max: 100, // start blocking after 20 requests
 });
 
-router.post("/me/create", auth, apiLimiter, multer, profilCtrl.createMyInfo);
+router.post("/me/create", multer, profilCtrl.createMyInfo);
 router.put("/me/:id", auth, apiLimiter, multer, profilCtrl.modifyMyInfo);
 router.get("/me/:id", auth, profilCtrl.getMyInfo);
 router.get("/me/post/:id", auth, profilCtrl.getMyPost);

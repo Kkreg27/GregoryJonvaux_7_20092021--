@@ -9,6 +9,7 @@ module.exports = (req, res, next) => {
       throw "ID utilisateur invalide";
     } else {
       console.log("token reussi");
+      req.userId = userId;
       next();
     }
   } catch {
