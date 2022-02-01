@@ -13,8 +13,11 @@ var con = mysql.createConnection({
 });
 
 con.connect(function (err) {
-  if (err) throw err;
+  if (err) {
+    console.log(err);
+    return
+  }
   console.log("Database connecté!");
-});
+})
 
 module.exports = con;
