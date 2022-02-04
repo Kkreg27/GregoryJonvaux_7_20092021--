@@ -4,7 +4,7 @@
       <li>
         <router-link class="router" to="/Feed"
           ><i class="fas fa-globe" id="group"></i
-          ><span>GROUPOMANIA</span></router-link
+          ><span>Groupomania</span></router-link
         >
       </li>
       <li>

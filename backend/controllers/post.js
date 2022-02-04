@@ -36,8 +36,8 @@ exports.createPost = (req, res, next) => {
 };
 exports.modifyPost = (req, res, next) => {
   if (req.file) {
-    const lvl = JSON.parse(req.body.data);
-    const admin = `select lvl from users where id = "${lvl.id_user}"`;
+    const value = JSON.parse(req.body.description);
+    const admin = `select lvl from users where id = "${value.id_user}"`;
     con.query(admin, function (err, result, fields) {
       if (err) {
         throw err;
@@ -55,11 +55,10 @@ exports.modifyPost = (req, res, next) => {
           if (valeur[0] == null) {
             const imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename
               }`;
-            const json = req.body.data;
-            const value = JSON.parse(json);
+            const value = JSON.parse(req.body.description);
             const updt = `UPDATE post
-SET description = "${value.description}",image="${imageUrl}"
-WHERE idPost = "${req.params.id}"`;
+  SET description = "${value.description}",image="${imageUrl}"
+  WHERE idPost = "${req.params.id}"`;
             con.query(updt, function (err, result, fields) {
               if (err) {
                 throw err;
@@ -83,11 +82,11 @@ WHERE idPost = "${req.params.id}"`;
 
                 const imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename
                   }`;
-                const json = req.body.data;
-                const value = JSON.parse(json);
+                const value = JSON.parse(req.body.description);
+
                 const updt = `UPDATE post
-SET description = "${value.description}",image ="${imageUrl}"
-WHERE idPost = "${req.params.id}"`;
+  SET description = "${value.description}",image ="${imageUrl}"
+  WHERE idPost = "${req.params.id}"`;
 
                 con.query(updt, function (err, result, fields) {
                   if (err) {
@@ -109,23 +108,34 @@ WHERE idPost = "${req.params.id}"`;
             }
             let obj = result.shift();
             let valeur = Object.values(obj);
-            const json = req.body.data;
-            const value = JSON.parse(json);
+            const value = JSON.parse(req.body.description);
+
+
             if (valeur[0] !== value.id_user) {
               return res.status(400).json({ error: "utilisateur non valide" });
             } else {
-              const existImg = `SELECT image FROM groupomania.post WHERE idPost=${req.params.id};`
+
+
+              const existImg = `SELECT image FROM groupomania.post WHERE idPost="${req.params.id}"`
               con.query(existImg, function (err, result, fields) {
                 if (err) {
                   throw err;
                 }
+                let x = result.shift()
+                let valeur = Object.values(x);
 
-                if (result.length == 0) {
-                  const json = req.body.data;
-                  const value = JSON.parse(json);
+
+                if (valeur[0] == null) {
+                  const value = JSON.parse(req.body.description);
+
+                  const imageUrl = `${req.protocol}://${req.get(
+                    "host"
+                  )}/images/${req.file.filename
+                    }`;
+
                   const updt = `UPDATE post
-SET description = "${value.description}"
-WHERE idPost = "${req.params.id}"`;
+  SET description = "${value.description}",image="${imageUrl}"
+  WHERE idPost = "${req.params.id}"`;
                   con.query(updt, function (err, result, fields) {
                     if (err) {
                       throw err;
@@ -135,7 +145,8 @@ WHERE idPost = "${req.params.id}"`;
                       .json({ message: "post sans img maj avec img" });
                   });
                 } else {
-                  if (result.length > 0) {
+                  if (valeur[0] !== null) {
+
                     const dltImg = `Select image from post where idPost="${req.params.id}"`;
                     con.query(dltImg, function (err, result, fields) {
                       if (err) {
@@ -151,11 +162,11 @@ WHERE idPost = "${req.params.id}"`;
                         "host"
                       )}/images/${req.file.filename
                         }`;
-                      const json = req.body.data;
-                      const value = JSON.parse(json);
+                      const value = JSON.parse(req.body.description);
+
                       const updt = `UPDATE post
-SET description = "${value.description}",image ="${imageUrl}"
-WHERE idPost = "${req.params.id}"`;
+  SET description = "${value.description}",image ="${imageUrl}"
+  WHERE idPost = "${req.params.id}"`;
 
                       con.query(updt, function (err, result, fields) {
                         if (err) {
@@ -177,6 +188,7 @@ WHERE idPost = "${req.params.id}"`;
   }
   else {
     if (!req.file) {
+
       const admin = `select lvl from users where id = "${req.body.id_user}"`;
       con.query(admin, function (err, result, fields) {
         if (err) {
@@ -188,8 +200,8 @@ WHERE idPost = "${req.params.id}"`;
 
         if (valeur[0] == 1) {
           const updt = `UPDATE post
-SET description = "${req.body.description}"
-WHERE idPost = "${req.params.id}"`;
+  SET description = "${req.body.description}"
+  WHERE idPost = "${req.params.id}"`;
           con.query(updt, function (err, result, fields) {
             if (err) {
               throw err;
@@ -216,8 +228,8 @@ WHERE idPost = "${req.params.id}"`;
               } else {
                 if (valeur[0] == req.body.id_user) {
                   const updt = `UPDATE post
-SET description = "${req.body.description}"
-WHERE idPost = "${req.params.id}"`;
+  SET description = "${req.body.description}"
+  WHERE idPost = "${req.params.id}"`;
                   con.query(updt, function (err, result, fields) {
                     if (err) {
                       throw err;
@@ -350,7 +362,6 @@ exports.getAllPost = (req, res, next) => {
   });
 };
 exports.createComment = (req, res, next) => {
-  console.log(req.body);
   const json = req.body;
   const com = `INSERT INTO comment (texte,post_id,user_id) VALUES (${con.escape(
     json.value
@@ -409,7 +420,7 @@ exports.deleteComment = (req, res, next) => {
   });
 };
 exports.getAllComment = (req, res, next) => {
-  const comment = `SELECT comment.texte,profil.nom,profil.prenom,profil.photo FROM comment INNER JOIN profil on profil.user=comment.user_id WHERE post_id = "${req.params.id}"`;
+  const comment = `SELECT comment.idComment,comment.texte,profil.nom,profil.prenom,profil.photo FROM comment INNER JOIN profil on profil.user=comment.user_id WHERE post_id = "${req.params.id}"`;
 
   con.query(comment, function (err, result, fields) {
     if (err) {

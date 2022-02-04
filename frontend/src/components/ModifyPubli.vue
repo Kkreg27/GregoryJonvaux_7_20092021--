@@ -1,0 +1,154 @@
+<template>
+  <i class="fas fa-ellipsis-h" id="option" @click="opt(postId)"></i>
+  <div :id="postId" class="dis" v-show="op">
+    <button @click="toggleClick">Modifier</button>
+    <button @click="delet(postId)">Supprimer</button>
+  </div>
+  <div id="modify" v-show="show">
+    <div id="calque" v-on:Click="toggleClick" v-show="show"></div>
+
+    <div id="frame">
+      <i @click="toggleClick(postId)" class="fas fa-times"></i>
+      <h1>Modifier la publication</h1>
+      <textarea id=""></textarea>
+      <img :src="previewImage" v-if="image != null" width="50" height="50" />
+      <input id="file" type="file" accept="image/jpeg" @change="UploadImage" />
+      <button @click="change(postId)">Modifier</button>
+    </div>
+  </div>
+</template>
+
+<script>
+const axios = require("axios");
+export default {
+  data() {
+    return {
+      image: null,
+      previewImage: null,
+      show: false,
+      op: false,
+    };
+  },
+  props: {
+    postId: {
+      required: true,
+      default: null,
+    },
+  },
+  methods: {
+    UploadImage(e) {
+      const image = e.target.files[0];
+      const reader = new FileReader();
+      reader.readAsDataURL(image);
+      reader.onload = (e) => {
+        this.previewImage = e.target.result;
+      };
+      this.image = e.target.files[0];
+    },
+    toggleClick(id) {
+      this.show = !this.show;
+
+      let x = document.getElementById(id);
+      console.log((x.children.modify.children.frame.children[2].value = ""));
+    },
+    opt() {
+      this.op = !this.op;
+    },
+    change(id) {
+      let x = document.getElementById(id);
+      let value = x.children.modify.children.frame.children[2].value;
+      var fd = new FormData();
+      let usrLocal = localStorage.getItem("user");
+      let usr = JSON.parse(usrLocal);
+      fd.append("image", this.image);
+      fd.append(
+        "description",
+        JSON.stringify({ id_user: usr._id, description: value })
+      );
+
+      axios
+        .put(`http://localhost:3000/api/post/${id}`, fd)
+        .then((response) => {
+          console.log(response);
+        })
+        .catch((error) => console.log(error));
+    },
+  },
+};
+</script>
+<style lang="scss" scoped>
+i {
+  width: 20px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  &:hover {
+    color: #0b83eda1;
+  }
+}
+.dis {
+  width: 20%;
+  position: absolute;
+  right: 10px;
+  top: 20px;
+  flex-direction: column;
+  button {
+    width: 100%;
+    border: none;
+  }
+}
+#modify {
+  z-index: 5;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  #calque {
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 5;
+  }
+  #frame {
+    z-index: 1000;
+    position: fixed;
+    width: 40%;
+    height: 20%;
+    background-color: white;
+    border-radius: 15px;
+    i {
+      position: static;
+      float: right;
+      margin-top: 10px;
+      margin-right: 10px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 100%;
+    }
+    textarea {
+      display: inline-flex;
+      font-family: Arial, sans-serif;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+      resize: none;
+    }
+  }
+}
+</style>

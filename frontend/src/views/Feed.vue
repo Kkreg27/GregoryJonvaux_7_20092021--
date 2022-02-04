@@ -32,13 +32,7 @@
   <div id="allPublish">
     <div v-for="elem in AllPubli" :key="elem">
       <div :id="elem.idPost" class="div">
-        <i class="fas fa-ellipsis-h" id="option" @click="ok(elem.idPost)"></i>
-        <div id="dis" style="display: none">
-          <nav>
-            <li><button @click="change(elem.idPost)">Modifier</button></li>
-            <li><button @click="delet(elem.idPost)">Supprimer</button></li>
-          </nav>
-        </div>
+        <ModifyPubli :postId="elem.idPost"></ModifyPubli>
         <div id="usr">
           <img :src="elem.photo" id="photoId" alt="" />
           <p>{{ elem.nom }}</p>
@@ -51,23 +45,16 @@
 
         <form @submit.prevent="com" id="formCom">
           <input type="text" :placeholder="`Ecrivez un commentaire`" />
-          <button type="submit" @click="Comment(elem.idPost)">
+
+          <button
+            style="display: none"
+            type="submit"
+            @click="Comment(elem.idPost)"
+          >
             Ajouter commentaire
           </button>
         </form>
-        <button id="buttonCom" @click="retrieveCom(elem.idPost)">
-          Tous les commentaires
-        </button>
-
-        <div v-if="displayCom.id == elem.idPost">
-          <div v-for="element in displayCom.com" :key="element" id="coms">
-            <img :src="element.photo" id="photo" alt="" />
-            <div id="comInfo">
-              <p id="comName">{{ element.nom }} {{ element.prenom }}</p>
-              <p id="comTexte">{{ element.texte }}</p>
-            </div>
-          </div>
-        </div>
+        <Comments :postId="elem.idPost"></Comments>
       </div>
     </div>
   </div>
@@ -77,10 +64,14 @@
 const axios = require("axios");
 
 import NavBar from "../components/NavBar";
+import Comments from "../components/Comments";
+import ModifyPubli from "../components/ModifyPubli";
 
 export default {
   components: {
     NavBar: NavBar,
+    Comments: Comments,
+    ModifyPubli: ModifyPubli,
   },
   data() {
     return {
@@ -104,35 +95,6 @@ export default {
   },
 
   methods: {
-    change(id) {
-      axios
-        .put(`http://localhost:3000/api/post/${id}`)
-        .then((response) => console.log(response));
-    },
-    delet(id) {
-      axios
-        .delete(`http://localhost:3000/api/post/${id}`)
-        .then((response) => console.log(response));
-    },
-    ok(e) {
-      let x = document.getElementById(e);
-      if (x.children.dis.style.display == "flex") {
-        x.children.dis.style.display = "none";
-      } else {
-        x.children.dis.style.display = "flex";
-      }
-    },
-    retrieveCom(id) {
-      axios
-        .get(`http://localhost:3000/api/post/comment/${id}`)
-        .then(
-          (response) => (
-            (this.displayCom.com = response.data.message),
-            (this.displayCom.id = id)
-          )
-        )
-        .catch((error) => console.log(error));
-    },
     UploadImage(e) {
       const image = e.target.files[0];
       const reader = new FileReader();
@@ -152,7 +114,7 @@ export default {
       let usr = JSON.parse(localStorage.getItem("user"));
       this.$store.dispatch("Comment", {
         post: e,
-        value: document.getElementById(e).children[2][0].value,
+        value: document.getElementById(e).children.formCom[0].value,
         user: usr._id,
       });
     },
@@ -236,7 +198,6 @@ export default {
 }
 #allPublish {
   background-color: white;
-  font-family: "Courier New", Courier, monospace;
   border-radius: 15px;
   width: 60%;
   margin: 0 auto;
@@ -246,7 +207,6 @@ export default {
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
 
   .div {
-    padding: 10px;
     border: 1px solid grey;
     border-radius: 15px;
     display: flex;
@@ -255,45 +215,7 @@ export default {
     text-align: left;
     margin: 30px 10% 30px 10%;
     position: relative;
-    #option {
-      display: flex;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      align-items: center;
-      justify-content: center;
-      position: absolute;
-      right: 0;
-      top: 0;
-      &:hover {
-        color: #0b84ed;
-        font-size: 20px;
-      }
-    }
-    #dis {
-      width: 20%;
-      text-decoration: none;
-      list-style: none;
-      position: absolute;
-      right: 0;
-      top: 20px;
-      background-color: #f0f2f5;
-      box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
-      > nav {
-        width: 100%;
-        > li {
-          width: 100%;
-          :hover {
-            border: 1px solid grey;
-          }
-          button {
-            width: 100%;
-            border: none;
-            font-size: 100%;
-          }
-        }
-      }
-    }
+
     #usr {
       font-weight: bold;
       align-items: center;
@@ -325,33 +247,9 @@ export default {
       outline: none;
       border-radius: 10px;
       padding: 5px;
-      width: 80%;
-    }
-  }
-  #buttonCom {
-    background-color: rgba(255, 255, 255, 0);
-    border: 1px solid rgba(0, 0, 0, 0);
-  }
-  #coms {
-    margin: 10px;
-    justify-content: space-around;
-    #comInfo {
-      padding: 10px;
-      line-height: 5px;
-      width: 90%;
+      width: 100%;
+      border: 1px solid grey;
       background-color: #f0f2f5;
-      border-radius: 15px;
-
-      #comName {
-        font-weight: bold;
-      }
-    }
-    #photo {
-      width: 25px;
-      height: 25px;
-      border: 1px solid black;
-      border-radius: 50%;
-      object-fit: cover;
     }
   }
 }

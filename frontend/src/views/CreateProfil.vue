@@ -55,12 +55,12 @@ export default {
 
 <style lang="scss" scoped>
 #formulaire {
-  font-family: "Courier New", Courier, monospace;
   border: 1px solid rgb(230, 228, 228);
   font-size: 150%;
   padding: 5%;
   border-radius: 54px;
-  background: linear-gradient(200deg, #ffffff, #19a089);
+  background: #0b83eda1;
+
   box-shadow: -27px 27px 54px #acacac, 27px -27px 54px #ffffff;
   position: absolute;
   top: 20%;
@@ -72,10 +72,10 @@ export default {
   flex-direction: column;
   #field {
     outline: none;
-    font-family: "Courier New", Courier, monospace;
   }
   #create {
-    font-family: "Courier New", Courier, monospace;
+    background: white;
+    border: none;
   }
 }
 </style>
