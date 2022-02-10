@@ -1,5 +1,5 @@
 <template>
-  <button id="logout">Déconnexion</button>
+  <button id="logout" @click="logout">Déconnexion</button>
   <div>
     <form id="formulaire" @submit.prevent="create">
       <label>Nom</label>
@@ -49,24 +49,24 @@ export default {
       fd.append("data", JSON.stringify(this.info));
       return this.$store.dispatch("CreateProfil", fd);
     },
+    logout: function () {
+      this.$store.commit("logout");
+    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
 #formulaire {
-  border: 1px solid rgb(230, 228, 228);
-  font-size: 150%;
   padding: 5%;
   border-radius: 54px;
   background: #0b83eda1;
+  margin: 0 auto;
 
+  display: flex;
+  justify-content: center;
   box-shadow: -27px 27px 54px #acacac, 27px -27px 54px #ffffff;
-  position: absolute;
-  top: 20%;
-  bottom: 20%;
-  right: 30%;
-  left: 30%;
+  width: 50%;
   display: flex;
   justify-content: center;
   flex-direction: column;
@@ -74,8 +74,23 @@ export default {
     outline: none;
   }
   #create {
-    background: white;
-    border: none;
+    color: white;
+    box-sizing: border-box;
+    background: lighten(#0b83eda1, 3%);
+    border: 1px solid darken(#0b83eda1, 4%);
+    border-radius: 20px;
+    padding: 15px;
+    box-shadow: 0px 2px 0 darken(#0b83eda1, 5%),
+      2px 4px 6px darken(#0b83eda1, 2%);
+    letter-spacing: 1px;
+    transition: all 120ms linear;
+    &:hover {
+      background: darken(#0b83eda1, 1.5%);
+      border: 1px solid rgba(#000, 0.05);
+      box-shadow: 1px 1px 2px rgba(#fff, 0.2);
+      text-decoration: none;
+      transition: all 130ms linear;
+    }
   }
 }
 </style>

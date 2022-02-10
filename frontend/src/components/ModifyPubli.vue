@@ -8,12 +8,12 @@
     <div id="calque" v-on:Click="toggleClick" v-show="show"></div>
 
     <div id="frame">
-      <i @click="toggleClick(postId)" class="fas fa-times"></i>
-      <h1>Modifier la publication</h1>
+      <i @click="toggleClick(postId)" class="fas fa-times" id="cross"></i>
+      <p>Modifier la publication</p>
       <textarea id=""></textarea>
       <img :src="previewImage" v-if="image != null" width="50" height="50" />
       <input id="file" type="file" accept="image/jpeg" @change="UploadImage" />
-      <button @click="change(postId)">Modifier</button>
+      <button id="button-modify" @click="change(postId)">Modifier</button>
     </div>
   </div>
 </template>
@@ -70,6 +70,7 @@ export default {
         .put(`http://localhost:3000/api/post/${id}`, fd)
         .then((response) => {
           console.log(response);
+          this.$router.go();
         })
         .catch((error) => console.log(error));
     },
@@ -90,7 +91,6 @@ i {
   }
 }
 .dis {
-  width: 20%;
   position: absolute;
   right: 10px;
   top: 20px;
@@ -124,21 +124,22 @@ i {
     z-index: 5;
   }
   #frame {
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
     z-index: 1000;
     position: fixed;
-    width: 40%;
-    height: 20%;
+    width: 50%;
     background-color: white;
     border-radius: 15px;
-    i {
-      position: static;
+    #cross {
+      position: absolute;
       float: right;
-      margin-top: 10px;
-      margin-right: 10px;
+      margin-top: 5px;
+      margin-right: 5px;
     }
-    h1 {
+    p {
       text-align: center;
-      font-size: 100%;
     }
     textarea {
       display: inline-flex;
@@ -148,6 +149,9 @@ i {
       width: 100%;
       box-sizing: border-box;
       resize: none;
+    }
+    #button-modify {
+      width: 30%;
     }
   }
 }

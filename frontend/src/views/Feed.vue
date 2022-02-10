@@ -117,6 +117,7 @@ export default {
         value: document.getElementById(e).children.formCom[0].value,
         user: usr._id,
       });
+      document.getElementById(e).children.formCom[0].value = "";
     },
   },
 
@@ -207,6 +208,7 @@ export default {
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
 
   .div {
+    padding: 5px;
     border: 1px solid grey;
     border-radius: 15px;
     display: flex;

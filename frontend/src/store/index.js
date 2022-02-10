@@ -81,8 +81,10 @@ export default createStore({
         instance
           .post("/auth/login", infoLogin)
           .then(function (response) {
-            commit("User", response.data);
-            router.push("/Feed");
+            commit;
+            console.log(response);
+            // commit("User", response.data);
+            // router.push("/Feed");
             resolve(response);
           })
           .catch(function (error) {

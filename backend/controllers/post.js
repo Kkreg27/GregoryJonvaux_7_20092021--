@@ -188,8 +188,8 @@ exports.modifyPost = (req, res, next) => {
   }
   else {
     if (!req.file) {
-
-      const admin = `select lvl from users where id = "${req.body.id_user}"`;
+      let value = JSON.parse(req.body.description)
+      const admin = `select lvl from users where id = "${value.id_user}"`;
       con.query(admin, function (err, result, fields) {
         if (err) {
           throw err;
@@ -200,7 +200,7 @@ exports.modifyPost = (req, res, next) => {
 
         if (valeur[0] == 1) {
           const updt = `UPDATE post
-  SET description = "${req.body.description}"
+  SET description = "${value.description}"
   WHERE idPost = "${req.params.id}"`;
           con.query(updt, function (err, result, fields) {
             if (err) {
@@ -221,14 +221,14 @@ exports.modifyPost = (req, res, next) => {
 
               let obj = result.shift();
               let valeur = Object.values(obj);
-              if (valeur[0] !== req.body.id_user) {
+              if (valeur[0] !== value.id_user) {
                 return res
                   .status(400)
                   .json({ error: "utilisateur non valide" });
               } else {
-                if (valeur[0] == req.body.id_user) {
+                if (valeur[0] == value.id_user) {
                   const updt = `UPDATE post
-  SET description = "${req.body.description}"
+  SET description = "${value.description}"
   WHERE idPost = "${req.params.id}"`;
                   con.query(updt, function (err, result, fields) {
                     if (err) {
@@ -352,7 +352,7 @@ exports.deletePost = (req, res, next) => {
   });
 };
 exports.getAllPost = (req, res, next) => {
-  const post = "SELECT post.idPost, post.description, post.image, profil.nom, profil.prenom,profil.photo FROM groupomania.post inner join profil on post.id_user = profil.user ;"
+  const post = "SELECT post.idPost, post.description, post.image, profil.nom, profil.prenom,profil.photo FROM groupomania.post inner join profil on post.id_user = profil.user ORDER BY idPost desc;"
 
   con.query(post, function (err, result, fields) {
     if (err) {

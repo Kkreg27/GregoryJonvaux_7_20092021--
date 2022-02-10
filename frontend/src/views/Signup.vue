@@ -47,9 +47,6 @@ export default {
   object-fit: cover;
 }
 #signup {
-  border: 1px solid rgb(230, 228, 228);
-  font-size: 150%;
-
   padding: 5%;
   border-radius: 54px;
   background: #0b83eda1;
@@ -88,15 +85,22 @@ export default {
       outline: none;
     }
     #inscription {
-      border: none;
-      font-size: 20px;
-      display: flex;
+      box-sizing: border-box;
+      background: lighten(#0b83eda1, 3%);
+      border: 1px solid darken(#0b83eda1, 4%);
+      border-radius: 20px;
       padding: 15px;
-      margin: 0 auto;
-
-      border-radius: 54px;
-      background: #fcf8f8;
-      box-shadow: inset -27px 27px 26px #ffffff, inset 27px -27px 26px #ffffff;
+      box-shadow: 0px 2px 0 darken(#0b83eda1, 5%),
+        2px 4px 6px darken(#0b83eda1, 2%);
+      letter-spacing: 1px;
+      transition: all 120ms linear;
+      &:hover {
+        background: darken(#0b83eda1, 1.5%);
+        border: 1px solid rgba(#000, 0.05);
+        box-shadow: 1px 1px 2px rgba(#fff, 0.2);
+        text-decoration: none;
+        transition: all 130ms linear;
+      }
     }
   }
 }

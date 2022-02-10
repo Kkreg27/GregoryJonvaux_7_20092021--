@@ -57,40 +57,62 @@ exports.signup = (req, res, next) => {
 };
 
 exports.login = (req, res, next) => {
-  const verif = `SELECT * FROM users WHERE email= "${req.body.email}"`;
+  const verif = `SELECT * FROM users  WHERE email= "${req.body.email}"`;
   con.query(verif, function (err, result, fields) {
     if (err) throw err;
-
     if (result.length == 0) {
       return res.status(401).json({ message: "email invalide" })
     } else {
-      let resultat = result.shift();
-      return bcrypt.compare(req.body.password, resultat.password).then((validity) => {
-        if (!validity) {
-          return res.status(401).json({ error: "Mot de passe incorrect !" });
-        } else {
-          return res.status(200).json({
-            message: "vous etes connecté",
-            _id: resultat.id,
-            token: jwt.sign(
-              { _id: resultat.id },
-              "RANDOM_TOKEN_SECRET",
-              { expiresIn: "1h" }
-            ),
+      const profil = `SELECT * FROM users INNER JOIN groupomania.profil ON users.id = profil.user WHERE email= "${req.body.email}"`;
+      let value = result
+      con.query(profil, function (err, result, fields) {
+        if (err) throw err;
+        if (result.length == 0) {
+          return bcrypt.compare(req.body.password, value[0].password).then((validity) => {
+            if (!validity) {
+              return res.status(401).json({ error: "Mot de passe incorrect !" });
+            } else {
+              return res.status(200).json({
+                message: "vous etes connecté",
+                profil: 0,
+                _id: value[0].id,
+                token: jwt.sign(
+                  { _id: value[0].id },
+                  "RANDOM_TOKEN_SECRET",
+                  { expiresIn: "1h" }
+                ),
+              });
+            }
           });
         }
+        else {
+
+          return bcrypt.compare(req.body.password, value[0].password).then((validity) => {
+            if (!validity) {
+              return res.status(401).json({ error: "Mot de passe incorrect !" });
+            } else {
+              return res.status(200).json({
+                message: "vous etes connecté",
+                profil: 1,
+                _id: value[0].id,
+                token: jwt.sign(
+                  { _id: value[0].id },
+                  "RANDOM_TOKEN_SECRET",
+                  { expiresIn: "1h" }
+                ),
+              });
+            }
+          });
+        }
+
       });
 
 
+
+
+
+
     }
-
-
-
-
-
-
-
-
 
   });
 };
