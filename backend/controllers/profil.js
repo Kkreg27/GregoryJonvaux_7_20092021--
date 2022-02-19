@@ -36,21 +36,8 @@ exports.createMyInfo = (req, res, next) => {
         if (err) {
           throw err;
         }
+        return res.status(200).json({ message: "profil avec photo crée" })
 
-        const prfl = `SELECT id from profil where user = "${value.user}"`
-        con.query(prfl, function (err, result, fields) {
-          if (err) {
-            throw err;
-          }
-          let resu = result.shift()
-          const usr = `UPDATE users  set profil = "${resu.id}" where id = "${value.user}"`
-          con.query(usr, function (err, result, fields) {
-            if (err) {
-              throw err;
-            }
-            return res.status(200).json({ message: "profil avec photo crée" })
-          })
-        })
       });
     }
   }

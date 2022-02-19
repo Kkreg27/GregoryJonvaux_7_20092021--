@@ -34,10 +34,6 @@ export default createStore({
       photo: "",
       poste: "",
     },
-    publish: {
-      description: "",
-      user: "",
-    },
   },
   mutations: {
     User: function (state, user) {
@@ -81,11 +77,17 @@ export default createStore({
         instance
           .post("/auth/login", infoLogin)
           .then(function (response) {
-            commit;
-            console.log(response);
-            // commit("User", response.data);
-            // router.push("/Feed");
-            resolve(response);
+            if (response.data.profil == 1) {
+              commit("User", response.data);
+              router.push("/Feed");
+              resolve(response);
+              return;
+            } else {
+              commit("User", response.data);
+              router.push("/createProfil");
+              resolve(response);
+              return;
+            }
           })
           .catch(function (error) {
             reject(error);
@@ -103,8 +105,10 @@ export default createStore({
       return new Promise((resolve, reject) => {
         instance
           .post("/profil/me/create", infoProfil)
+
           .then(function (response) {
             commit("userProfil", response.data);
+
             router.push("/Profil");
             resolve(response);
           })
@@ -125,7 +129,7 @@ export default createStore({
           .post("/post/publish", infoPublish)
           .then(function (response) {
             commit("userPublish", response.data);
-            router.go();
+
             resolve(response);
           })
           .catch(function (error) {

@@ -249,7 +249,7 @@ exports.modifyPost = (req, res, next) => {
   }
 };
 exports.deletePost = (req, res, next) => {
-  const admin = `select lvl from users where id = "${req.body.id_user}"`;
+  const admin = `select lvl from users where id = "${req.body._id}"`;
   con.query(admin, function (err, result, fields) {
     if (err) {
       throw err;
@@ -257,43 +257,96 @@ exports.deletePost = (req, res, next) => {
     let obj = result.shift();
     let valeur = Object.values(obj);
     if (valeur[0] == 1) {
-      const verifImg = `Select image from post where idPost = "${req.params.id}"`;
-      con.query(verifImg, function (err, result, fields) {
+
+      //on verifie les commentaires
+      let com = `Select post_id from comment where post_id = "${req.params.id}"`;
+      con.query(com, function (err, result, fields) {
         if (err) {
           throw err;
         }
-        let obj = result.shift();
-        let valeur = Object.values(obj);
-        if (valeur[0] == null) {
-          const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
-          con.query(dlt, function (err, result, fields) {
-            if (err) {
-              throw err;
-            }
-            return res.status(200).json({ message: "post supprimé" });
-          });
-        } else {
-          const dltImg = `Select image from post where idPost="${req.params.id}"`;
-          con.query(dltImg, function (err, result, fields) {
+        if (result.length == 0) {
+          //si il ny a pas de com alors on supprime limage et le post 
+          const verifImg = `Select image from post where idPost = "${req.params.id}"`;
+          con.query(verifImg, function (err, result, fields) {
             if (err) {
               throw err;
             }
             let obj = result.shift();
             let valeur = Object.values(obj);
+            if (valeur[0] == null) {
+              const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
+              con.query(dlt, function (err, result, fields) {
+                if (err) {
+                  throw err;
+                }
+                return res.status(200).json({ message: "post supprimé" });
+              });
+            } else {
+              const dltImg = `Select image from post where idPost="${req.params.id}"`;
+              con.query(dltImg, function (err, result, fields) {
+                if (err) {
+                  throw err;
+                }
+                let obj = result.shift();
+                let valeur = Object.values(obj);
 
-            const filename = valeur[0].split("/images/")[1];
-            fs.unlink(`images/${filename}`, () => { });
+                const filename = valeur[0].split("/images/")[1];
+                fs.unlink(`images/${filename}`, () => { });
 
-            const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
-            con.query(dlt, function (err, result, fields) {
-              if (err) {
-                throw err;
-              }
-              return res.status(200).json({ message: "post supprimé" });
-            });
+                const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
+                con.query(dlt, function (err, result, fields) {
+                  if (err) {
+                    throw err;
+                  }
+                  return res.status(200).json({ message: "post supprimé" });
+                });
+              });
+            }
+          });
+        } else {
+          const verifImg = `Select image from post where idPost = "${req.params.id}"`;
+          con.query(verifImg, function (err, result, fields) {
+            if (err) {
+              throw err;
+            }
+            let obj = result.shift();
+            let valeur = Object.values(obj);
+            if (valeur[0] == null) {
+
+              let coms = `DELETE post, comment FROM  post INNER JOIN comment ON post.idPost=comment.post_id  
+          WHERE post.idPost=${req.params.id};`
+              con.query(coms, function (err, result, fields) {
+                if (err) {
+                  throw err;
+                }
+                return res.status(200).json({ message: "post supprimé" });
+              })
+            } else {
+              const dltImg = `Select image from post where idPost="${req.params.id}"`;
+              con.query(dltImg, function (err, result, fields) {
+                if (err) {
+                  throw err;
+                }
+                let obj = result.shift();
+                let valeur = Object.values(obj);
+
+                const filename = valeur[0].split("/images/")[1];
+                fs.unlink(`images/${filename}`, () => { });
+
+
+                let coms = `DELETE post, comment FROM  post INNER JOIN comment ON post.idPost=comment.post_id  
+          WHERE post.idPost=${req.params.id};`
+                con.query(coms, function (err, result, fields) {
+                  if (err) {
+                    throw err;
+                  }
+                  return res.status(200).json({ message: "post supprimé" });
+                })
+              });
+            }
           });
         }
-      });
+      })
     } else {
       const auth = `select id_user from post where idPost="${req.params.id}"`;
       con.query(auth, function (err, result, fields) {
@@ -302,49 +355,101 @@ exports.deletePost = (req, res, next) => {
         }
         let obj = result.shift();
         let valeur = Object.values(obj);
-        const json = req.body.id_user;
+        const json = req.body._id;
         if (valeur[0] !== json) {
           return res.status(400).json({ error: "requete impossible" });
         }
         else {
           if (valeur[0] == json) {
-            const verifImg = `Select image from post where idPost = "${req.params.id}"`;
-            con.query(verifImg, function (err, result, fields) {
+            //on verifie les commenaires
+            let com = `Select post_id from comment where post_id = "${req.params.id}"`;
+            con.query(com, function (err, result, fields) {
               if (err) {
                 throw err;
               }
-              let obj = result.shift();
-              let valeur = Object.values(obj);
-              if (valeur[0] == null) {
-                const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
-                con.query(dlt, function (err, result, fields) {
-                  if (err) {
-                    throw err;
-                  }
-                  return res.status(200).json({ message: "post supprimé" });
-                });
-              } else {
-                const dltImg = `Select image from post where idPost="${req.params.id}"`;
-                con.query(dltImg, function (err, result, fields) {
+              if (result.length == 0) {
+                //si il ny a pas de com alors on supprime limage et le post 
+                const verifImg = `Select image from post where idPost = "${req.params.id}"`;
+                con.query(verifImg, function (err, result, fields) {
                   if (err) {
                     throw err;
                   }
                   let obj = result.shift();
                   let valeur = Object.values(obj);
+                  if (valeur[0] == null) {
+                    const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
+                    con.query(dlt, function (err, result, fields) {
+                      if (err) {
+                        throw err;
+                      }
+                      return res.status(200).json({ message: "post supprimé" });
+                    });
+                  } else {
+                    const dltImg = `Select image from post where idPost="${req.params.id}"`;
+                    con.query(dltImg, function (err, result, fields) {
+                      if (err) {
+                        throw err;
+                      }
+                      let obj = result.shift();
+                      let valeur = Object.values(obj);
 
-                  const filename = valeur[0].split("/images/")[1];
-                  fs.unlink(`images/${filename}`, () => { });
+                      const filename = valeur[0].split("/images/")[1];
+                      fs.unlink(`images/${filename}`, () => { });
 
-                  const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
-                  con.query(dlt, function (err, result, fields) {
-                    if (err) {
-                      throw err;
-                    }
-                    return res.status(200).json({ message: "post supprimé" });
-                  });
+                      const dlt = `DELETE FROM post WHERE idPost = "${req.params.id}"`;
+                      con.query(dlt, function (err, result, fields) {
+                        if (err) {
+                          throw err;
+                        }
+                        return res.status(200).json({ message: "post supprimé" });
+                      });
+                    });
+                  }
+                });
+              } else {
+                const verifImg = `Select image from post where idPost = "${req.params.id}"`;
+                con.query(verifImg, function (err, result, fields) {
+                  if (err) {
+                    throw err;
+                  }
+                  let obj = result.shift();
+                  let valeur = Object.values(obj);
+                  if (valeur[0] == null) {
+
+                    let coms = `DELETE post, comment FROM  post INNER JOIN comment ON post.idPost=comment.post_id  
+          WHERE post.idPost=${req.params.id};`
+                    con.query(coms, function (err, result, fields) {
+                      if (err) {
+                        throw err;
+                      }
+                      return res.status(200).json({ message: "post supprimé" });
+                    })
+                  } else {
+                    const dltImg = `Select image from post where idPost="${req.params.id}"`;
+                    con.query(dltImg, function (err, result, fields) {
+                      if (err) {
+                        throw err;
+                      }
+                      let obj = result.shift();
+                      let valeur = Object.values(obj);
+
+                      const filename = valeur[0].split("/images/")[1];
+                      fs.unlink(`images/${filename}`, () => { });
+
+
+                      let coms = `DELETE post, comment FROM  post INNER JOIN comment ON post.idPost=comment.post_id  
+          WHERE post.idPost=${req.params.id};`
+                      con.query(coms, function (err, result, fields) {
+                        if (err) {
+                          throw err;
+                        }
+                        return res.status(200).json({ message: "post supprimé" });
+                      })
+                    });
+                  }
                 });
               }
-            });
+            })
           }
         }
       });
@@ -352,7 +457,7 @@ exports.deletePost = (req, res, next) => {
   });
 };
 exports.getAllPost = (req, res, next) => {
-  const post = "SELECT post.idPost, post.description, post.image, profil.nom, profil.prenom,profil.photo FROM groupomania.post inner join profil on post.id_user = profil.user ORDER BY idPost desc;"
+  const post = "SELECT post.idPost, post.description, post.image, profil.nom, profil.prenom,profil.photo,profil.user FROM groupomania.post inner join profil on post.id_user = profil.user ORDER BY idPost desc;"
 
   con.query(post, function (err, result, fields) {
     if (err) {

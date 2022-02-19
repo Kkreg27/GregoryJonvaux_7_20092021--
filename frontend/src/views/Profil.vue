@@ -1,6 +1,28 @@
 <template>
   <div><NavBar></NavBar></div>
   <div id="profil">
+    <i id="option" class="fas fa-gears" @click="opt()"></i>
+    <div v-show="show" id="modify"></div>
+    <form id="formulaire" @submit.prevent="create">
+      <label>Nom</label>
+      <input id="field" type="text" v-model="info.nom" />
+
+      <label>Prénom</label>
+      <input id="field" type="text" v-model="info.prenom" />
+
+      <label>Age</label>
+      <input id="field" type="number" v-model="info.age" />
+
+      <label>Photo</label>
+      <input id="field" type="file" accept="image/jpeg" @change="UploadImage" />
+
+      <label>Poste</label>
+      <input id="field" type="text" v-model="info.poste" />
+      <p></p>
+      <button id="create" type="submit" @click="modifyProfil()">
+        Modifier Profil
+      </button>
+    </form>
     <div id="info">
       <img :src="info.photo" id="photo" alt="" />
       <div id="details">
@@ -28,7 +50,6 @@
 <script>
 const axios = require("axios");
 import NavBar from "../components/NavBar";
-
 export default {
   components: {
     NavBar: NavBar,
@@ -37,12 +58,18 @@ export default {
     return {
       info: null,
       post: null,
+      show: false,
+      op: false,
     };
+  },
+  methods: {
+    opt() {
+      this.show = !this.show;
+    },
   },
   beforeCreate() {
     let storage = localStorage.getItem("user");
     let usr = JSON.parse(storage);
-    console.log(usr._id);
     axios
       .get(`http://localhost:3000/api/profil/me/${usr._id}`)
       .then((response) => (this.info = response.data.message[0]))
@@ -69,6 +96,36 @@ export default {
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
   border-radius: 15px;
   flex-direction: column;
+  #option {
+    font-size: 150%;
+    &:hover {
+      color: #0b83eda1;
+    }
+  }
+  #modify {
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+  }
+  #formulaire {
+    border: 1px solid black;
+    padding: 5%;
+    border-radius: 54px;
+    background: white;
+    position: absolute;
+    top: 20%;
+    bottom: 20%;
+    right: 30%;
+    left: 30%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+  }
   #info {
     padding: 2%;
     #details {

@@ -22,7 +22,12 @@
         <label for="file"
           ><i class="fas fa-image" id="addImg"></i>Photo/Image</label
         >
-        <button type="submit" @click="Publish()" style="display: none">
+        <button
+          type="submit"
+          @click="Publish()"
+          style="display: none"
+          onclick="document.getElementById('text').value = ''"
+        >
           Publier
         </button>
       </form>
@@ -32,7 +37,12 @@
   <div id="allPublish">
     <div v-for="elem in AllPubli" :key="elem">
       <div :id="elem.idPost" class="div">
-        <ModifyPubli :postId="elem.idPost"></ModifyPubli>
+        <ModifyPubli
+          v-if="this.me == elem.user"
+          :postId="elem.idPost"
+          @delete="(val) => onDelete(val)"
+          @modify="() => onModify()"
+        ></ModifyPubli>
         <div id="usr">
           <img :src="elem.photo" id="photoId" alt="" />
           <p>{{ elem.nom }}</p>
@@ -75,6 +85,7 @@ export default {
   },
   data() {
     return {
+      me: JSON.parse(localStorage.getItem("user"))._id,
       image: null,
       previewImage: null,
       info: null,
@@ -108,7 +119,20 @@ export default {
       var fd = new FormData();
       fd.append("image", this.image);
       fd.append("description", JSON.stringify(this.publi));
-      return this.$store.dispatch("Publish", fd);
+      let self = this;
+      this.publi.description = "";
+      this.image = null;
+      this.$store
+        .dispatch("Publish", fd)
+        .then(function () {
+          axios
+            .get(`http://localhost:3000/api/post/all`)
+            .then((response) => {
+              self.AllPubli = response.data.message;
+            })
+            .catch((error) => console.log(error));
+        })
+        .catch((error) => console.log(error));
     },
     Comment: function (e) {
       let usr = JSON.parse(localStorage.getItem("user"));
@@ -118,6 +142,25 @@ export default {
         user: usr._id,
       });
       document.getElementById(e).children.formCom[0].value = "";
+    },
+    onDelete(val) {
+      for (let elem of this.AllPubli) {
+        if (val.id === elem.idPost) {
+          const index = this.AllPubli.indexOf(elem);
+          if (index > -1) {
+            this.AllPubli.splice(index, 1);
+          }
+        }
+      }
+    },
+    onModify() {
+      console.log("coucou");
+      axios
+        .get(`http://localhost:3000/api/post/all`)
+        .then((response) => {
+          this.AllPubli = response.data.message;
+        })
+        .catch((error) => console.log(error));
     },
   },
 

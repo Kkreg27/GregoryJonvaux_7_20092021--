@@ -69,8 +69,19 @@ export default {
       axios
         .put(`http://localhost:3000/api/post/${id}`, fd)
         .then((response) => {
-          console.log(response);
-          this.$router.go();
+          response;
+          this.show = !this.show;
+          this.$emit("modify");
+        })
+        .catch((error) => console.log(error));
+    },
+    delet(id) {
+      let x = JSON.parse(localStorage.getItem("user"));
+      this.$emit("delete", { id: id });
+      axios
+        .delete(`http://localhost:3000/api/post/${id}`, { data: x })
+        .then((response) => {
+          response;
         })
         .catch((error) => console.log(error));
     },
