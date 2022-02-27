@@ -14,6 +14,5 @@ router.post("/me/create", multer, profilCtrl.createMyInfo);
 router.put("/me/:id", multer, profilCtrl.modifyMyInfo);
 router.get("/me/:id", profilCtrl.getMyInfo);
 router.get("/me/post/:id", profilCtrl.getMyPost);
-router.delete("/me/:id", profilCtrl.deleteMyInfo);
 
 module.exports = router;

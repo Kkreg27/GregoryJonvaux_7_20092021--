@@ -2,27 +2,34 @@
   <div><NavBar></NavBar></div>
   <div id="profil">
     <i id="option" class="fas fa-gears" @click="opt()"></i>
-    <div v-show="show" id="modify"></div>
-    <form id="formulaire" @submit.prevent="create">
-      <label>Nom</label>
-      <input id="field" type="text" v-model="info.nom" />
+    <div id="modify" v-show="show">
+      <div id="calque" v-on:Click="toggleClick"></div>
+      <form id="formulaire" @submit.prevent="create">
+        <label>Nom</label>
+        <input id="field" type="text" v-model="usr.nom" />
 
-      <label>Prénom</label>
-      <input id="field" type="text" v-model="info.prenom" />
+        <label>Prénom</label>
+        <input id="field" type="text" v-model="usr.prenom" />
 
-      <label>Age</label>
-      <input id="field" type="number" v-model="info.age" />
+        <label>Age</label>
+        <input id="field" type="number" v-model="usr.age" />
 
-      <label>Photo</label>
-      <input id="field" type="file" accept="image/jpeg" @change="UploadImage" />
+        <label>Photo</label>
+        <input
+          id="field"
+          type="file"
+          accept="image/jpeg"
+          @change="UploadImage"
+        />
 
-      <label>Poste</label>
-      <input id="field" type="text" v-model="info.poste" />
-      <p></p>
-      <button id="create" type="submit" @click="modifyProfil()">
-        Modifier Profil
-      </button>
-    </form>
+        <label>Poste</label>
+        <input id="field" type="text" v-model="usr.poste" />
+        <p></p>
+        <button id="create" type="submit" @click="modifyProfil()">
+          Modifier Profil
+        </button>
+      </form>
+    </div>
     <div id="info">
       <img :src="info.photo" id="photo" alt="" />
       <div id="details">
@@ -60,11 +67,58 @@ export default {
       post: null,
       show: false,
       op: false,
+      image: null,
+      usr: {
+        user: "",
+        nom: "",
+        prenom: "",
+        age: "",
+        photo: "",
+        poste: "",
+      },
     };
   },
   methods: {
+    UploadImage(e) {
+      this.image = e.target.files[0];
+    },
     opt() {
       this.show = !this.show;
+    },
+    toggleClick() {
+      this.show = !this.show;
+    },
+    modifyProfil() {
+      let obj = this.usr;
+      function createObject(obj) {
+        for (let crit of Object.keys(obj)) {
+          if (obj[crit] == null || obj[crit] == "") {
+            delete obj[crit];
+          }
+        }
+        return obj;
+      }
+      obj = createObject(obj);
+      if (Object.keys(obj).length == 0 && this.image == null) {
+        this.show = !this.show;
+      } else {
+        let fd = new FormData();
+        fd.append("image", this.image);
+        fd.append("body", JSON.stringify(obj));
+        let self = this;
+        axios
+          .put(`http://localhost:3000/api/profil/me/${this.info.user}`, fd)
+          .then(() => {
+            let storage = localStorage.getItem("user");
+            let usr = JSON.parse(storage);
+            axios
+              .get(`http://localhost:3000/api/profil/me/${usr._id}`)
+              .then((response) => (this.info = response.data.message[0]))
+              .catch((error) => console.log(error));
+            self.show = !self.show;
+          })
+          .catch((error) => console.log(error));
+      }
     },
   },
   beforeCreate() {
@@ -103,28 +157,36 @@ export default {
     }
   }
   #modify {
-    background-color: rgba(0, 0, 0, 0.5);
-    width: 100%;
-    height: 100%;
     position: fixed;
     top: 0;
     right: 0;
     left: 0;
     bottom: 0;
-  }
-  #formulaire {
-    border: 1px solid black;
-    padding: 5%;
-    border-radius: 54px;
-    background: white;
-    position: absolute;
-    top: 20%;
-    bottom: 20%;
-    right: 30%;
-    left: 30%;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
+    #calque {
+      background-color: rgba(0, 0, 0, 0.5);
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+    }
+    #formulaire {
+      border: none;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      z-index: 1000;
+      position: fixed;
+      top: 25%;
+      right: 25%;
+      left: 25%;
+      bottom: 25%;
+      background-color: white;
+      border-radius: 15px;
+    }
   }
   #info {
     padding: 2%;
