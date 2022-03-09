@@ -47,7 +47,14 @@ export default {
       var fd = new FormData();
       fd.append("image", this.image);
       fd.append("data", JSON.stringify(this.info));
-      return this.$store.dispatch("CreateProfil", fd);
+      return this.$store
+        .dispatch("CreateProfil", fd)
+        .then(function (response) {
+          response;
+        })
+        .catch((error) => {
+          console.log("Creéation de profil échoué" + error);
+        });
     },
     logout: function () {
       this.$store.commit("logout");

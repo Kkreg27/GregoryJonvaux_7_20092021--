@@ -2,10 +2,11 @@ const fs = require("fs");
 const con = require("../db");
 
 exports.createPost = (req, res, next) => {
+
   if (!req.file) {
-    let value = JSON.parse(req.body.description)
+    let value = req.body
     const post = `INSERT INTO post (id_user,description) VALUES (${con.escape(
-      value.user
+      value.id_user
     )},${con.escape(value.description)})`;
 
     con.query(post, function (err, result, fields) {
@@ -17,13 +18,13 @@ exports.createPost = (req, res, next) => {
     //Création de post avec image
   } else {
 
-    const json = req.body.description;
-    const value = JSON.parse(json);
+    const value = req.body
+
     const imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename
       }`;
 
     const post = `INSERT INTO post (id_user,description,image) VALUES (${con.escape(
-      value.user
+      value.id_user
     )},${con.escape(value.description)},"${imageUrl}")`;
 
     con.query(post, function (err, result, fields) {
@@ -36,7 +37,8 @@ exports.createPost = (req, res, next) => {
 };
 exports.modifyPost = (req, res, next) => {
   if (req.file) {
-    const value = JSON.parse(req.body.description);
+    const value = req.body
+
     const admin = `select lvl from users where id = "${value.id_user}"`;
     con.query(admin, function (err, result, fields) {
       if (err) {
@@ -106,9 +108,11 @@ exports.modifyPost = (req, res, next) => {
             if (err) {
               throw err;
             }
+
             let obj = result.shift();
             let valeur = Object.values(obj);
-            const value = JSON.parse(req.body.description);
+            const value = req.body
+
 
 
             if (valeur[0] !== value.id_user) {
@@ -126,8 +130,7 @@ exports.modifyPost = (req, res, next) => {
 
 
                 if (valeur[0] == null) {
-                  const value = JSON.parse(req.body.description);
-
+                  const value = req.body
                   const imageUrl = `${req.protocol}://${req.get(
                     "host"
                   )}/images/${req.file.filename
@@ -162,7 +165,8 @@ exports.modifyPost = (req, res, next) => {
                         "host"
                       )}/images/${req.file.filename
                         }`;
-                      const value = JSON.parse(req.body.description);
+                      const value = req.body
+
 
                       const updt = `UPDATE post
   SET description = "${value.description}",image ="${imageUrl}"
@@ -188,7 +192,7 @@ exports.modifyPost = (req, res, next) => {
   }
   else {
     if (!req.file) {
-      let value = JSON.parse(req.body.description)
+      let value = req.body
       const admin = `select lvl from users where id = "${value.id_user}"`;
       con.query(admin, function (err, result, fields) {
         if (err) {
@@ -218,7 +222,6 @@ exports.modifyPost = (req, res, next) => {
               if (err) {
                 throw err;
               }
-
               let obj = result.shift();
               let valeur = Object.values(obj);
               if (valeur[0] !== value.id_user) {
@@ -249,7 +252,7 @@ exports.modifyPost = (req, res, next) => {
   }
 };
 exports.deletePost = (req, res, next) => {
-  const admin = `select lvl from users where id = "${req.body._id}"`;
+  const admin = `select lvl from users where id = "${req.body.id_user}"`;
   con.query(admin, function (err, result, fields) {
     if (err) {
       throw err;
@@ -259,14 +262,14 @@ exports.deletePost = (req, res, next) => {
     if (valeur[0] == 1) {
 
       //on verifie les commentaires
-      let com = `Select post_id from comment where post_id = "${req.params.id}"`;
+      let com = `Select post_id from comment where user_id = "${req.params.id}"`;
       con.query(com, function (err, result, fields) {
         if (err) {
           throw err;
         }
         if (result.length == 0) {
           //si il ny a pas de com alors on supprime limage et le post 
-          const verifImg = `Select image from post where idPost = "${req.params.id}"`;
+          const verifImg = `Select image from post where idPost = "${req.body.id_user}"`;
           con.query(verifImg, function (err, result, fields) {
             if (err) {
               throw err;
@@ -282,7 +285,7 @@ exports.deletePost = (req, res, next) => {
                 return res.status(200).json({ message: "post supprimé" });
               });
             } else {
-              const dltImg = `Select image from post where idPost="${req.params.id}"`;
+              const dltImg = `Select image from post where idPost="${req.body.id_user}"`;
               con.query(dltImg, function (err, result, fields) {
                 if (err) {
                   throw err;
@@ -304,7 +307,7 @@ exports.deletePost = (req, res, next) => {
             }
           });
         } else {
-          const verifImg = `Select image from post where idPost = "${req.params.id}"`;
+          const verifImg = `Select image from post where idPost = "${req.body.id_user}"`;
           con.query(verifImg, function (err, result, fields) {
             if (err) {
               throw err;
@@ -314,7 +317,7 @@ exports.deletePost = (req, res, next) => {
             if (valeur[0] == null) {
 
               let coms = `DELETE post, comment FROM  post INNER JOIN comment ON post.idPost=comment.post_id  
-          WHERE post.idPost=${req.params.id};`
+          WHERE post.idPost=${req.body.id_user};`
               con.query(coms, function (err, result, fields) {
                 if (err) {
                   throw err;
@@ -322,7 +325,7 @@ exports.deletePost = (req, res, next) => {
                 return res.status(200).json({ message: "post supprimé" });
               })
             } else {
-              const dltImg = `Select image from post where idPost="${req.params.id}"`;
+              const dltImg = `Select image from post where idPost="${req.body.id_user}"`;
               con.query(dltImg, function (err, result, fields) {
                 if (err) {
                   throw err;
@@ -335,7 +338,7 @@ exports.deletePost = (req, res, next) => {
 
 
                 let coms = `DELETE post, comment FROM  post INNER JOIN comment ON post.idPost=comment.post_id  
-          WHERE post.idPost=${req.params.id};`
+          WHERE post.idPost=${req.body.id_user};`
                 con.query(coms, function (err, result, fields) {
                   if (err) {
                     throw err;
@@ -355,14 +358,15 @@ exports.deletePost = (req, res, next) => {
         }
         let obj = result.shift();
         let valeur = Object.values(obj);
-        const json = req.body._id;
+
+        const json = req.body.id_user;
         if (valeur[0] !== json) {
           return res.status(400).json({ error: "requete impossible" });
         }
         else {
           if (valeur[0] == json) {
             //on verifie les commenaires
-            let com = `Select post_id from comment where post_id = "${req.params.id}"`;
+            let com = `Select post_id from comment where post_id = "${req.body.id_user}"`;
             con.query(com, function (err, result, fields) {
               if (err) {
                 throw err;
@@ -390,6 +394,7 @@ exports.deletePost = (req, res, next) => {
                       if (err) {
                         throw err;
                       }
+
                       let obj = result.shift();
                       let valeur = Object.values(obj);
 
@@ -407,7 +412,7 @@ exports.deletePost = (req, res, next) => {
                   }
                 });
               } else {
-                const verifImg = `Select image from post where idPost = "${req.params.id}"`;
+                const verifImg = `Select image from post where idPost = "${req.body.id_user}"`;
                 con.query(verifImg, function (err, result, fields) {
                   if (err) {
                     throw err;
@@ -417,7 +422,7 @@ exports.deletePost = (req, res, next) => {
                   if (valeur[0] == null) {
 
                     let coms = `DELETE post, comment FROM  post INNER JOIN comment ON post.idPost=comment.post_id  
-          WHERE post.idPost=${req.params.id};`
+          WHERE post.idPost=${req.body.id_user};`
                     con.query(coms, function (err, result, fields) {
                       if (err) {
                         throw err;
@@ -425,7 +430,7 @@ exports.deletePost = (req, res, next) => {
                       return res.status(200).json({ message: "post supprimé" });
                     })
                   } else {
-                    const dltImg = `Select image from post where idPost="${req.params.id}"`;
+                    const dltImg = `Select image from post where idPost="${req.body.id_user}"`;
                     con.query(dltImg, function (err, result, fields) {
                       if (err) {
                         throw err;
@@ -438,7 +443,7 @@ exports.deletePost = (req, res, next) => {
 
 
                       let coms = `DELETE post, comment FROM  post INNER JOIN comment ON post.idPost=comment.post_id  
-          WHERE post.idPost=${req.params.id};`
+          WHERE post.idPost=${req.body.id};`
                       con.query(coms, function (err, result, fields) {
                         if (err) {
                           throw err;
@@ -467,61 +472,16 @@ exports.getAllPost = (req, res, next) => {
   });
 };
 exports.createComment = (req, res, next) => {
-  const json = req.body;
+  const value = req.body;
   const com = `INSERT INTO comment (texte,post_id,user_id) VALUES (${con.escape(
-    json.value
-  )},${con.escape(req.params.id)},${con.escape(json.user)})`;
+    value.value
+  )},${con.escape(req.params.id)},${con.escape(value.user)})`;
 
   con.query(com, function (err, result, fields) {
     if (err) {
       throw err;
     }
     return res.status(200).json({ message: "commentaire créé" });
-  });
-};
-exports.deleteComment = (req, res, next) => {
-  const admin = `select lvl from users where id = "${req.body.id}"`;
-  con.query(admin, function (err, result, fields) {
-    if (err) {
-      throw err;
-    }
-    let obj = result.shift();
-    let valeur = Object.values(obj);
-    if (valeur[0] == 1) {
-      const dltComment = `DELETE FROM comment WHERE idComment = "${req.params.id}"`;
-      con.query(dltComment, function (err, result, fields) {
-        if (err) {
-          throw err;
-        }
-        return res.status(200).json({ message: "comment supprimé" });
-      });
-    } else {
-      if (valeur[0] == 0) {
-        const auth = `select user_id from comment where idComment="${req.params.id}"`;
-        con.query(auth, function (err, result, fields) {
-          if (err) {
-            throw err;
-          }
-          let obj = result.shift();
-          let valeur = Object.values(obj);
-          const json = req.body.id;
-          if (valeur[0] != json) {
-            return res.status(400).json({ error: "requete impossible" });
-          }
-          else {
-            if (valeur[0] == json) {
-              const dltComment = `DELETE FROM comment WHERE idComment = "${req.params.id}"`;
-              con.query(dltComment, function (err, result, fields) {
-                if (err) {
-                  throw err;
-                }
-                return res.status(200).json({ message: "comment supprimé" });
-              });
-            }
-          }
-        });
-      }
-    }
   });
 };
 exports.getAllComment = (req, res, next) => {
@@ -531,7 +491,7 @@ exports.getAllComment = (req, res, next) => {
     if (err) {
       throw err;
     }
-
+    console.log(result);
     return res.status(200).json({ message: result });
   });
 };

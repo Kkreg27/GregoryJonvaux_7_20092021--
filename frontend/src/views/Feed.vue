@@ -8,7 +8,7 @@
         <input
           id="text"
           type="text"
-          v-model="publi.description"
+          v-model="description"
           :placeholder="`Quoi de neuf ,` + [[info.prenom]] + ` ?`"
         />
         <img :src="previewImage" v-if="image != null" width="50" height="50" />
@@ -71,7 +71,7 @@
 </template>
 
 <script>
-const axios = require("axios");
+//const axios = require("axios");
 
 import NavBar from "../components/NavBar";
 import Comments from "../components/Comments";
@@ -90,10 +90,7 @@ export default {
       previewImage: null,
       info: null,
       AllPubli: null,
-      publi: {
-        user: "",
-        description: "",
-      },
+      description: "",
       comments: {
         comment: "",
         user: null,
@@ -117,35 +114,60 @@ export default {
     },
     Publish: function () {
       var fd = new FormData();
+      let user = JSON.parse(localStorage.getItem("user"));
+      user = user._id;
+      fd.append("id_user", user);
       fd.append("image", this.image);
-      fd.append("description", JSON.stringify(this.publi));
+      fd.append("description", this.description);
       let self = this;
-      this.publi.description = "";
+      this.description = "";
       this.image = null;
+
       this.$store
         .dispatch("Publish", fd)
-        .then(function () {
-          axios
-            .get(`http://localhost:3000/api/post/all`)
-            .then((response) => {
+        .then(function (response) {
+          response;
+          self.$store
+            .dispatch("getAllPost")
+            .then(function (response) {
               self.AllPubli = response.data.message;
             })
-            .catch((error) => console.log(error));
+            .catch(function (error) {
+              if (error.response) {
+                console.log(error.response.data.message);
+                console.log(error.response.status);
+                console.log(error.response);
+              }
+            });
         })
-        .catch((error) => console.log(error));
+        .catch(function (error) {
+          if (error.response) {
+            console.log(error.response.data.message);
+            console.log(error.response.status);
+            console.log(error.response);
+          }
+        });
     },
-    Comment: function (e) {
+    Comment: function (id) {
       let usr = JSON.parse(localStorage.getItem("user"));
-      this.$store.dispatch("Comment", {
-        post: e,
-        value: document.getElementById(e).children.formCom[0].value,
-        user: usr._id,
-      });
-      document.getElementById(e).children.formCom[0].value = "";
+      this.$store
+        .dispatch("Comment", {
+          post: id,
+          value: document.getElementById(id).children.formCom[0].value,
+          user: usr._id,
+        })
+        .catch(function (error) {
+          if (error.response) {
+            console.log(error.response.data.message);
+            console.log(error.response.status);
+            console.log(error.response);
+          }
+        });
+      document.getElementById(id).children.formCom[0].value = "";
     },
     onDelete(val) {
       for (let elem of this.AllPubli) {
-        if (val.id === elem.idPost) {
+        if (val === elem.idPost) {
           const index = this.AllPubli.indexOf(elem);
           if (index > -1) {
             this.AllPubli.splice(index, 1);
@@ -154,28 +176,51 @@ export default {
       }
     },
     onModify() {
-      console.log("coucou");
-      axios
-        .get(`http://localhost:3000/api/post/all`)
-        .then((response) => {
-          this.AllPubli = response.data.message;
+      let self = this;
+      this.$store
+        .dispatch("getAllPost")
+        .then(function (response) {
+          self.AllPubli = response.data.message;
         })
-        .catch((error) => console.log(error));
+        .catch(function (error) {
+          if (error.response) {
+            console.log(error.response.data.message);
+            console.log(error.response.status);
+            console.log(error.response);
+          }
+        });
     },
   },
 
   beforeCreate() {
     let storage = localStorage.getItem("user");
     let usr = JSON.parse(storage);
-    axios
-      .get(`http://localhost:3000/api/profil/me/${usr._id}`)
-      .then((response) => (this.info = response.data.message[0]))
-      .catch((error) => console.log(error));
+    let self = this;
+    this.$store
+      .dispatch("getProfil", usr._id)
+      .then(function (response) {
+        self.info = response.data.message[0];
+      })
+      .catch(function (error) {
+        if (error.response) {
+          console.log(error.response.data.message);
+          console.log(error.response.status);
+          console.log(error.response);
+        }
+      });
 
-    axios
-      .get(`http://localhost:3000/api/post/all`)
-      .then((response) => (this.AllPubli = response.data.message))
-      .catch((error) => console.log(error));
+    this.$store
+      .dispatch("getAllPost")
+      .then(function (response) {
+        self.AllPubli = response.data.message;
+      })
+      .catch(function (error) {
+        if (error.response) {
+          console.log(error.response.data.message);
+          console.log(error.response.status);
+          console.log(error.response);
+        }
+      });
   },
   created: function () {
     document.body.style.backgroundColor = "#F0F2F5";

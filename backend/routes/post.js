@@ -10,12 +10,11 @@ const apiLimiter = rateLimit({
   max: 100,
 });
 
-router.post("/publish", multer, postCtrl.createPost);
-router.put("/:id", multer, postCtrl.modifyPost);
-router.delete("/:id", postCtrl.deletePost);
-router.get("/all", postCtrl.getAllPost);
-router.post("/comment/:id", multer, postCtrl.createComment);
-router.delete("/comment/:id", postCtrl.deleteComment);
-router.get("/comment/:id", postCtrl.getAllComment);
+router.post("/publish", auth, multer, postCtrl.createPost);
+router.put("/:id", auth, multer, postCtrl.modifyPost);
+router.delete("/:id", auth, postCtrl.deletePost);
+router.get("/all", auth, postCtrl.getAllPost);
+router.post("/comment/:id", apiLimiter, auth, multer, postCtrl.createComment);
+router.get("/comment/:id", auth, postCtrl.getAllComment);
 
 module.exports = router;

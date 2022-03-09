@@ -5,7 +5,6 @@ import router from "../router/index";
 const instance = axios.create({
   baseURL: "http://localhost:3000/api/",
 });
-
 let user = localStorage.getItem("user");
 if (!user) {
   user = {
@@ -34,7 +33,9 @@ export default createStore({
       photo: "",
       poste: "",
     },
+    publish: "",
   },
+  //améliorer les mutations qui sont identique
   mutations: {
     User: function (state, user) {
       instance.defaults.headers.common["Authorization"] = user.token;
@@ -53,7 +54,14 @@ export default createStore({
       router.push("/");
     },
     userPublish: function (state, infoPublish) {
+      instance.defaults.headers.common["Authorization"] = user.token;
       state.publish = infoPublish;
+    },
+    delete: function (state, user) {
+      instance.defaults.headers.common["Authorization"] = user.token;
+    },
+    modify: function (state, user) {
+      instance.defaults.headers.common["Authorization"] = user.token;
     },
   },
   actions: {
@@ -79,7 +87,7 @@ export default createStore({
           .then(function (response) {
             if (response.data.profil == 1) {
               commit("User", response.data);
-              router.push("/Feed");
+              router.push("/Profil");
               resolve(response);
               return;
             } else {
@@ -101,35 +109,75 @@ export default createStore({
       infoParse.user = userParse._id;
       info = JSON.stringify(infoParse);
       infoProfil.set("data", info);
-      console.log(infoProfil.get("data"));
       return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
         instance
           .post("/profil/me/create", infoProfil)
 
           .then(function (response) {
             commit("userProfil", response.data);
-
             router.push("/Profil");
             resolve(response);
           })
           .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
             reject(error);
           });
       });
     },
-    Publish: ({ commit }, infoPublish) => {
-      let info = infoPublish.get("description");
-      let infoParse = JSON.parse(info);
-      let userParse = JSON.parse(localStorage.getItem("user"));
-      infoParse.user = userParse._id;
-      info = JSON.stringify(infoParse);
-      infoPublish.set("description", info);
+    Publish: ({ commit }, post) => {
+      return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
+        instance
+          .post("/post/publish", post)
+          .then(function (response) {
+            response;
+            commit("userPublish", response.data);
+            resolve(response);
+          })
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+            reject(error);
+          });
+      });
+    },
+    delete: ({ commit }, id) => {
+      return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
+        instance
+          .delete(`http://localhost:3000/api/post/${id.post}`, {
+            data: { id_user: id.user },
+          })
+          .then(function (response) {
+            commit("delete", response);
+            resolve(response);
+          })
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+            reject(error);
+          });
+      });
+    },
+    modify: ({ commit }, fd) => {
+      let id = fd.get("id");
       return new Promise((resolve, reject) => {
         instance
-          .post("/post/publish", infoPublish)
-          .then(function (response) {
-            commit("userPublish", response.data);
-
+          .put(`http://localhost:3000/api/post/${id}`, fd)
+          .then((response) => {
+            response;
+            commit("modify", response);
             resolve(response);
           })
           .catch(function (error) {
@@ -137,15 +185,143 @@ export default createStore({
           });
       });
     },
-    Comment: ({ commit }, infoComment) => {
+    getProfil: ({ commit }, id) => {
       return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
         instance
-          .post(`/post/comment/${infoComment.post}`, infoComment)
-          .then(function (response) {
-            commit("userPublish", response.data);
+          .get(`http://localhost:3000/api/profil/me/${id}`)
+          .then((response) => {
+            response;
+            commit;
             resolve(response);
           })
           .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+            reject(error);
+          });
+      });
+    },
+    getMyPost: ({ commit }, id) => {
+      return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
+        instance
+          .get(`http://localhost:3000/api/profil/me/post/${id}`)
+          .then((response) => {
+            response;
+            commit;
+            resolve(response);
+          })
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+            reject(error);
+          });
+      });
+    },
+    getAllPost: ({ commit }) => {
+      return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
+        instance
+          .get(`http://localhost:3000/api/post/all`)
+          .then((response) => {
+            response;
+            commit;
+            resolve(response);
+          })
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+            reject(error);
+          });
+      });
+    },
+    modifyProfil: ({ commit }, fd) => {
+      let myUser = fd.get("user");
+      return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
+        instance
+          .put(`http://localhost:3000/api/profil/me/${myUser}`, fd)
+          .then((response) => {
+            response;
+            commit;
+            resolve(response);
+          })
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+            reject(error);
+          });
+      });
+    },
+    deleteAccount: ({ commit }, id) => {
+      return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
+        instance
+          .delete(`http://localhost:3000/api/profil/me/${id}`)
+          .then((response) => {
+            response;
+            commit("logout");
+            resolve(response);
+          })
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+            reject(error);
+          });
+      });
+    },
+    Comment: ({ commit }, comment) => {
+      return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
+        instance
+          .post(`/post/comment/${comment.post}`, comment)
+          .then((response) => {
+            response;
+            commit;
+            resolve(response);
+          })
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+            reject(error);
+          });
+      });
+    },
+    getAllComment: ({ commit }, id) => {
+      return new Promise((resolve, reject) => {
+        instance.defaults.headers.common["Authorization"] = user.token;
+        instance
+          .get(`http://localhost:3000/api/post/comment/${id}`)
+          .then((response) => {
+            response;
+            resolve(response);
+            commit;
+          })
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
             reject(error);
           });
       });

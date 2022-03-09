@@ -10,9 +10,9 @@ const apiLimiter = rateLimit({
   max: 100,
 });
 
-router.post("/me/create", multer, profilCtrl.createMyInfo);
-router.put("/me/:id", multer, profilCtrl.modifyMyInfo);
-router.get("/me/:id", profilCtrl.getMyInfo);
-router.get("/me/post/:id", profilCtrl.getMyPost);
-
+router.post("/me/create", auth, multer, profilCtrl.createMyInfo);
+router.put("/me/:id", auth, multer, profilCtrl.modifyMyInfo);
+router.get("/me/:id", auth, profilCtrl.getMyInfo);
+router.get("/me/post/:id", auth, profilCtrl.getMyPost);
+router.delete("/me/:id", auth, profilCtrl.deleteAccount)
 module.exports = router;

@@ -14,8 +14,6 @@
 </template>
 
 <script>
-const axios = require("axios");
-
 export default {
   data() {
     return {
@@ -30,15 +28,30 @@ export default {
   },
   methods: {
     display() {
+      let self = this;
       if (this.$props.postId == null) {
+        console.log("j'ai return");
         return;
       } else {
-        axios
-          .get(`http://localhost:3000/api/post/comment/${this.$props.postId}`)
-          .then((response) => {
-            this.comments = response.data.message;
+        this.$store
+          .dispatch("getAllComment", this.$props.postId)
+          .then(function (response) {
+            self.comments = response.data.message;
           })
-          .catch((error) => console.log(error));
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+          });
+
+        // axios
+        //   .get(`http://localhost:3000/api/post/comment/${c}`)
+        //   .then((response) => {
+        //     this.comments = response.data.message;
+        //   })
+        //   .catch((error) => console.log(error));
       }
     },
   },

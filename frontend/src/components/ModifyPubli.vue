@@ -19,7 +19,7 @@
 </template>
 
 <script>
-const axios = require("axios");
+//const axios = require("axios");
 export default {
   data() {
     return {
@@ -55,35 +55,48 @@ export default {
       this.op = !this.op;
     },
     change(id) {
+      let fd = new FormData();
       let x = document.getElementById(id);
       let value = x.children.modify.children.frame.children[2].value;
-      var fd = new FormData();
-      let usrLocal = localStorage.getItem("user");
-      let usr = JSON.parse(usrLocal);
+      let usr = localStorage.getItem("user");
+      let user = JSON.parse(usr);
       fd.append("image", this.image);
-      fd.append(
-        "description",
-        JSON.stringify({ id_user: usr._id, description: value })
-      );
+      fd.append("description", value);
+      fd.append("id_user", user._id);
+      fd.append("id", id);
 
-      axios
-        .put(`http://localhost:3000/api/post/${id}`, fd)
-        .then((response) => {
+      let self = this;
+
+      this.$store
+        .dispatch("modify", fd)
+        .then(function (response) {
           response;
-          this.show = !this.show;
-          this.$emit("modify");
+          self.$emit("modify");
+          self.show = !self.show;
         })
-        .catch((error) => console.log(error));
+        .catch(function (error) {
+          if (error.response) {
+            console.log(error.response.data.message);
+            console.log(error.response.status);
+            console.log(error.response);
+          }
+        });
     },
     delet(id) {
       let x = JSON.parse(localStorage.getItem("user"));
-      this.$emit("delete", { id: id });
-      axios
-        .delete(`http://localhost:3000/api/post/${id}`, { data: x })
-        .then((response) => {
-          response;
+      let self = this;
+      this.$store
+        .dispatch("delete", { post: id, user: x._id })
+        .then(function () {
+          self.$emit("delete", id);
         })
-        .catch((error) => console.log(error));
+        .catch(function (error) {
+          if (error.response) {
+            console.log(error.response.data.message);
+            console.log(error.response.status);
+            console.log(error.response);
+          }
+        });
     },
   },
 };

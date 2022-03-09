@@ -6,13 +6,13 @@
       <div id="calque" v-on:Click="toggleClick"></div>
       <form id="formulaire" @submit.prevent="create">
         <label>Nom</label>
-        <input id="field" type="text" v-model="usr.nom" />
+        <input type="text" v-model="usr.nom" class="value" />
 
         <label>Prénom</label>
-        <input id="field" type="text" v-model="usr.prenom" />
+        <input type="text" v-model="usr.prenom" class="value" />
 
         <label>Age</label>
-        <input id="field" type="number" v-model="usr.age" />
+        <input type="number" v-model="usr.age" class="value" />
 
         <label>Photo</label>
         <input
@@ -20,13 +20,17 @@
           type="file"
           accept="image/jpeg"
           @change="UploadImage"
+          class="value"
         />
 
         <label>Poste</label>
-        <input id="field" type="text" v-model="usr.poste" />
+        <input type="text" v-model="usr.poste" class="value" />
         <p></p>
         <button id="create" type="submit" @click="modifyProfil()">
           Modifier Profil
+        </button>
+        <button id="deleteAccount" @click="deleteAccount()">
+          Supprimer mon compte
         </button>
       </form>
     </div>
@@ -55,7 +59,6 @@
 </template>
 
 <script>
-const axios = require("axios");
 import NavBar from "../components/NavBar";
 export default {
   components: {
@@ -68,12 +71,11 @@ export default {
       show: false,
       op: false,
       image: null,
+      test: "test",
       usr: {
-        user: "",
         nom: "",
         prenom: "",
         age: "",
-        photo: "",
         poste: "",
       },
     };
@@ -105,34 +107,81 @@ export default {
         let fd = new FormData();
         fd.append("image", this.image);
         fd.append("body", JSON.stringify(obj));
+        fd.append("user", this.info.user);
         let self = this;
-        axios
-          .put(`http://localhost:3000/api/profil/me/${this.info.user}`, fd)
-          .then(() => {
+
+        this.$store
+          .dispatch("modifyProfil", fd)
+          .then(function () {
             let storage = localStorage.getItem("user");
             let usr = JSON.parse(storage);
-            axios
-              .get(`http://localhost:3000/api/profil/me/${usr._id}`)
-              .then((response) => (this.info = response.data.message[0]))
-              .catch((error) => console.log(error));
-            self.show = !self.show;
+            self.$store
+              .dispatch("getProfil", usr._id)
+              .then(function (response) {
+                self.info = response.data.message[0];
+                self.usr.nom = "";
+                self.usr.prenom = "";
+                self.usr.age = "";
+                self.usr.poste = "";
+                document.getElementById("field").value = "";
+                self.show = !self.show;
+              })
+              .catch(function (error) {
+                if (error.response) {
+                  console.log(error.response.data.message);
+                  console.log(error.response.status);
+                  console.log(error.response);
+                }
+              });
           })
-          .catch((error) => console.log(error));
+          .catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data.message);
+              console.log(error.response.status);
+              console.log(error.response);
+            }
+          });
       }
+    },
+    deleteAccount() {
+      let user = this.info.user;
+      this.$store.dispatch("deleteAccount", user).catch(function (error) {
+        if (error.response) {
+          console.log(error.response.data.message);
+          console.log(error.response.status);
+          console.log(error.response);
+        }
+      });
     },
   },
   beforeCreate() {
     let storage = localStorage.getItem("user");
     let usr = JSON.parse(storage);
-    axios
-      .get(`http://localhost:3000/api/profil/me/${usr._id}`)
-      .then((response) => (this.info = response.data.message[0]))
-      .catch((error) => console.log(error));
-
-    axios
-      .get(`http://localhost:3000/api/profil/me/post/${usr._id}`)
-      .then((response) => (this.post = response.data.message))
-      .catch((error) => console.log(error));
+    let self = this;
+    this.$store
+      .dispatch("getProfil", usr._id)
+      .then(function (response) {
+        self.info = response.data.message[0];
+      })
+      .catch(function (error) {
+        if (error.response) {
+          console.log(error.response.data.message);
+          console.log(error.response.status);
+          console.log(error.response);
+        }
+      });
+    this.$store
+      .dispatch("getMyPost", usr._id)
+      .then(function (response) {
+        self.post = response.data.message;
+      })
+      .catch(function (error) {
+        if (error.response) {
+          console.log(error.response.data.message);
+          console.log(error.response.status);
+          console.log(error.response);
+        }
+      });
   },
   created: function () {
     document.body.style.backgroundColor = "#F0F2F5";
@@ -186,6 +235,17 @@ export default {
       bottom: 25%;
       background-color: white;
       border-radius: 15px;
+      #deleteAccount {
+        background: none;
+        position: absolute;
+        border-radius: 5px;
+        bottom: 10px;
+        color: #0b83edbd;
+        &:hover {
+          color: black;
+          background: #0b83edbd;
+        }
+      }
     }
   }
   #info {

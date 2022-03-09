@@ -140,7 +140,6 @@ exports.modifyMyInfo = (req, res, next) => {
       else {
         const updt = `UPDATE profil ${createSetString(body)}
       WHERE user = "${req.params.id}";`;
-        console.log(updt);
         con.query(updt, function (err, result, fields) {
           if (err) {
             throw err;
@@ -151,7 +150,6 @@ exports.modifyMyInfo = (req, res, next) => {
     }
   })
 };
-
 exports.getMyInfo = (req, res, next) => {
   const info = `SELECT * FROM profil where user = "${req.params.id}"`;
 
@@ -164,7 +162,6 @@ exports.getMyInfo = (req, res, next) => {
   });
 };
 exports.getMyPost = (req, res, next) => {
-
   const myPost = `SELECT * FROM post where id_user = "${req.params.id}"`;
 
   con.query(myPost, function (err, result, fields) {
@@ -175,3 +172,62 @@ exports.getMyPost = (req, res, next) => {
     return res.status(200).json({ message: result });
   });
 };
+
+exports.deleteAccount = (req, res, next) => {
+  const existImg = `select photo from profil where user="${req.params.id}"`;
+  con.query(existImg, function (err, result, fields) {
+    if (err) {
+      throw err;
+    }
+    console.log(result);
+    let obj = result.shift();
+    let valeur = Object.values(obj);
+    //il n'y avait pas d'image
+    if (valeur[0] == null) {
+      const deleteAccount = `DELETE users,profil,post,comment FROM groupomania.users 
+      LEFT JOIN profil on users.id= profil.user 
+      LEFT JOIN post on profil.user=post.id_user 
+      LEFT JOIN comment on post.id_user=comment.user_id
+      where users.id = "${req.params.id}"; `
+      con.query(deleteAccount, function (err, result, fields) {
+        if (err) {
+          throw err;
+        }
+        return res.status(200).json({ message: "utilisateur supprimé" })
+      })
+    }
+    //il y avait une image
+    else {
+
+      const dltImg = `Select photo from profil where user ="${req.params.id}"`;
+      con.query(dltImg, function (err, result, fields) {
+        if (err) {
+          throw err;
+        }
+        let obj = result.shift();
+        let valeur = Object.values(obj);
+
+        const filename = valeur[0].split("/images/")[1];
+        fs.unlink(`images/${filename}`, () => { });
+
+        const deleteAccount = `DELETE users,profil,post,comment FROM groupomania.users 
+        LEFT JOIN profil on users.id= profil.user 
+        LEFT JOIN post on profil.user=post.id_user 
+        LEFT JOIN comment on post.id_user=comment.user_id
+        where users.id = "${req.params.id}"; `
+        con.query(deleteAccount, function (err, result, fields) {
+          if (err) {
+            throw err;
+          }
+          return res.status(200).json({ message: "utilisateur supprimé" })
+        })
+
+
+      });
+
+    }
+  });
+
+};
+
+

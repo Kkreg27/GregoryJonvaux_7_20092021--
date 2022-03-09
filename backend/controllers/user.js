@@ -45,7 +45,7 @@ exports.signup = (req, res, next) => {
               token: jwt.sign(
                 { _id: obj[0] },
                 "RANDOM_TOKEN_SECRET",
-                { expiresIn: "1h" }
+                { expiresIn: '1800s' }
               ),
             });
           });
@@ -79,7 +79,7 @@ exports.login = (req, res, next) => {
                 token: jwt.sign(
                   { _id: value[0].id },
                   "RANDOM_TOKEN_SECRET",
-                  { expiresIn: "1h" }
+                  { expiresIn: '1800s' }
                 ),
               });
             }
@@ -98,7 +98,7 @@ exports.login = (req, res, next) => {
                 token: jwt.sign(
                   { _id: value[0].id },
                   "RANDOM_TOKEN_SECRET",
-                  { expiresIn: "1h" }
+                  { expiresIn: "5h" }
                 ),
               });
             }
