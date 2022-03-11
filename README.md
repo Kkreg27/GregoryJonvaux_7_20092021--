@@ -1,24 +1,13 @@
 # group
 
-## Project setup
+## Frontend
 ```
 npm install
 ```
-
-### Compiles and hot-reloads for development
-```
 npm run serve
-```
 
-### Compiles and minifies for production
-```
-npm run build
-```
+##Backend
 
-### Lints and fixes files
-```
-npm run lint
-```
+npm install
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+nodemon server
